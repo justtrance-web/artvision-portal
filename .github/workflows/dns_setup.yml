@@ -37,78 +37,93 @@ jobs:
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
               await page.waitForTimeout(3000);
               
-              // Закрываем popup
-              try {
-                await page.click('button:has-text("Закрыть")', { timeout: 2000 });
-              } catch(e) {}
-              
-              // Закрываем NPS опрос если есть
-              try {
-                const closeX = await page.$('.close, [aria-label="close"], button:has-text("×")');
-                if (closeX) await closeX.click();
-              } catch(e) {}
-              
-              await page.screenshot({ path: '01_dns.png', fullPage: true });
+              // Проверяем есть ли уже portal
+              const content = await page.content();
+              if (content.includes('portal.artvision.pro') || content.includes('portal\t') || content.includes('>portal<')) {
+                console.log('✅ Запись portal УЖЕ существует!');
+                await page.screenshot({ path: '01_already_exists.png', fullPage: true });
+                await browser.close();
+                return;
+              }
               
               console.log('➕ Добавляю запись...');
               await page.click('text=Добавить запись');
               await page.waitForTimeout(2000);
-              await page.screenshot({ path: '02_form.png', fullPage: true });
+              await page.screenshot({ path: '02_modal.png', fullPage: true });
               
-              // Кликаем на dropdown типа (там где "A")
-              console.log('📝 Открываю dropdown типа...');
+              // Кликаем на dropdown типа (там где написано "A")
+              console.log('📝 Выбираю тип CNAME...');
               
-              // Находим dropdown с текстом "A" в форме
-              const typeButton = await page.$('.modal div:has-text("A") >> nth=0');
-              if (!typeButton) {
-                // Пробуем найти по структуре
-                await page.click('.modal >> text=A >> nth=0');
+              // Находим select или dropdown с типом
+              const typeDropdown = await page.$('select, [class*="select"], [class*="dropdown"]');
+              if (typeDropdown) {
+                // Если это select
+                const tagName = await typeDropdown.evaluate(el => el.tagName);
+                if (tagName === 'SELECT') {
+                  await typeDropdown.selectOption('CNAME');
+                } else {
+                  // Кликаем чтобы открыть
+                  await typeDropdown.click();
+                  await page.waitForTimeout(500);
+                  await page.click('text=CNAME');
+                }
               } else {
-                await typeButton.click();
+                // Ищем кнопку/div с текстом "A" и кликаем
+                const typeBtn = await page.$('button:has-text("A"), div:has-text("A")');
+                if (typeBtn) {
+                  await typeBtn.click();
+                  await page.waitForTimeout(500);
+                  // Ищем CNAME в выпадающем списке
+                  await page.click('li:has-text("CNAME"), div:has-text("CNAME"), option:has-text("CNAME")');
+                }
               }
-              await page.waitForTimeout(1000);
-              await page.screenshot({ path: '03_dropdown.png', fullPage: true });
               
-              // Выбираем CNAME из списка
-              console.log('📝 Выбираю CNAME...');
-              await page.click('text=CNAME');
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '04_cname_selected.png', fullPage: true });
+              await page.screenshot({ path: '03_type_selected.png', fullPage: true });
               
               // Заполняем хост
-              console.log('📝 Заполняю portal...');
-              const hostInput = await page.$('input:near(:text("Хост"))');
+              console.log('📝 Заполняю хост...');
+              // Ищем input рядом с текстом "Хост" или с placeholder
+              const hostInput = await page.$('input[placeholder*="Хост"], input[name*="host"], input[name*="name"]');
               if (hostInput) {
                 await hostInput.fill('portal');
               } else {
-                // Альтернатива - первый видимый input в модалке
-                await page.fill('.modal input:visible >> nth=0', 'portal');
+                // Первый текстовый input в модалке
+                const inputs = await page.$$('.modal input[type="text"], dialog input[type="text"]');
+                if (inputs.length > 0) {
+                  await inputs[0].fill('portal');
+                }
               }
+              
               await page.waitForTimeout(500);
               
               // Заполняем значение CNAME
-              console.log('📝 Заполняю cname.vercel-dns.com...');
-              // После выбора CNAME появится поле для значения
-              const cnameInput = await page.$('input:near(:text("Значение")), input:near(:text("Target")), input:near(:text("Домен"))');
-              if (cnameInput) {
-                await cnameInput.fill('cname.vercel-dns.com');
+              console.log('📝 Заполняю значение...');
+              const valueInput = await page.$('input[placeholder*="значение"], input[placeholder*="value"], input[name*="value"], input[name*="target"], input[name*="content"]');
+              if (valueInput) {
+                await valueInput.fill('cname.vercel-dns.com');
               } else {
-                // Второй input в модалке
-                await page.fill('.modal input:visible >> nth=1', 'cname.vercel-dns.com');
+                // Второй input или input после смены типа
+                const inputs = await page.$$('.modal input[type="text"]:visible, dialog input[type="text"]:visible');
+                if (inputs.length > 1) {
+                  await inputs[1].fill('cname.vercel-dns.com');
+                }
               }
               
-              await page.screenshot({ path: '05_filled.png', fullPage: true });
+              await page.screenshot({ path: '04_filled.png', fullPage: true });
               
               // Сохраняем
               console.log('💾 Сохраняю...');
               await page.click('button:has-text("Сохранить")');
               await page.waitForTimeout(3000);
-              await page.screenshot({ path: '06_result.png', fullPage: true });
+              await page.screenshot({ path: '05_result.png', fullPage: true });
               
-              // Проверяем
-              const content = await page.content();
-              if (content.includes('portal')) {
-                console.log('✅ Запись portal добавлена!');
+              // Проверяем результат
+              const newContent = await page.content();
+              if (newContent.includes('portal')) {
+                console.log('✅ УСПЕХ! Запись portal добавлена!');
+              } else {
+                console.log('⚠️ Проверь скриншоты');
               }
               
             } catch (e) {
