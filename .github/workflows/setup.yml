@@ -12,15 +12,32 @@ jobs:
       - name: Install psql
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       
-      - name: Run Supabase migration
+      - name: Force IPv4 and run migration
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          PGHOST: db.fgnegxazufjriauvfkfy.supabase.co
-          PGPORT: 5432
-          PGUSER: postgres
-          PGDATABASE: postgres
-          PGSSLMODE: require
         run: |
+          # Получаем IPv4 адрес
+          IPV4=$(dig +short A db.fgnegxazufjriauvfkfy.supabase.co | head -1)
+          echo "Using IPv4: $IPV4"
+          
+          # Если нет IPv4, пробуем pooler
+          if [ -z "$IPV4" ]; then
+            echo "No IPv4, trying pooler..."
+            IPV4=$(dig +short A aws-0-eu-central-1.pooler.supabase.com | head -1)
+            export PGHOST="$IPV4"
+            export PGPORT=5432
+            export PGUSER="postgres.fgnegxazufjriauvfkfy"
+          else
+            export PGHOST="$IPV4"
+            export PGPORT=5432
+            export PGUSER="postgres"
+          fi
+          
+          export PGDATABASE=postgres
+          export PGSSLMODE=require
+          
+          echo "Connecting to $PGHOST:$PGPORT as $PGUSER..."
+          
           psql << 'SQL'
           
           CREATE TABLE IF NOT EXISTS clients (
