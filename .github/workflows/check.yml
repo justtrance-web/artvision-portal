@@ -1,0 +1,25 @@
+name: Check Site
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check portal.artvision.pro
+        run: |
+          echo "=== Checking portal.artvision.pro ==="
+          curl -sI https://portal.artvision.pro | head -20
+          echo ""
+          echo "=== Response body (first 500 chars) ==="
+          curl -s https://portal.artvision.pro | head -c 500
+          
+      - name: Check vercel.app
+        run: |
+          echo ""
+          echo "=== Checking artvision-portal.vercel.app ==="
+          curl -sI https://artvision-portal.vercel.app | head -20
+          echo ""
+          echo "=== Response body (first 500 chars) ==="
+          curl -s https://artvision-portal.vercel.app | head -c 500
