@@ -37,8 +37,8 @@ jobs:
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
               await page.waitForTimeout(3000);
               
-              // Проверяем есть ли уже portal
-              const content = await page.content();
+              // Проверяем portal
+              let content = await page.content();
               if (content.includes('portal.artvision.pro')) {
                 console.log('✅ Запись portal УЖЕ существует!');
                 await page.screenshot({ path: 'already_exists.png', fullPage: true });
@@ -46,51 +46,93 @@ jobs:
                 return;
               }
               
-              console.log('➕ Открываю форму добавления...');
-              await page.click('button:has-text("Добавить запись")');
+              console.log('➕ Открываю форму...');
+              await page.click('button:has-text("Добавить")');
               await page.waitForTimeout(2000);
+              await page.screenshot({ path: '01_form.png', fullPage: true });
               
-              // Кликаем на dropdown типа - ищем div/span с текстом "A" внутри формы
-              console.log('📝 Кликаю на dropdown типа...');
+              // Анализируем HTML модалки
+              console.log('🔍 Анализирую форму...');
+              const modalHTML = await page.evaluate(() => {
+                const modal = document.querySelector('[class*="modal"], [role="dialog"], .popup, [class*="dialog"]');
+                return modal ? modal.innerHTML.substring(0, 3000) : 'Modal not found';
+              });
+              console.log('Modal HTML:', modalHTML.substring(0, 1000));
               
-              // Это кастомный select, нужно кликнуть на контейнер
-              // Ищем по aria-label или по структуре
-              await page.click('div[class*="select"]:has-text("A"), span:has-text("A") >> nth=0');
+              // Ищем все интерактивные элементы в модалке
+              const elements = await page.evaluate(() => {
+                const modal = document.querySelector('[class*="modal"], [role="dialog"]') || document;
+                const els = modal.querySelectorAll('select, input, button, [class*="select"], [class*="dropdown"], [role="listbox"], [role="combobox"]');
+                return Array.from(els).map(e => ({
+                  tag: e.tagName,
+                  class: e.className,
+                  id: e.id,
+                  name: e.name,
+                  role: e.role,
+                  text: e.textContent?.substring(0, 50)
+                }));
+              });
+              console.log('Elements:', JSON.stringify(elements, null, 2));
+              
+              // Пробуем найти реальный select
+              const hasSelect = await page.$('select');
+              if (hasSelect) {
+                console.log('📝 Нашёл select, выбираю CNAME...');
+                await page.selectOption('select', 'CNAME');
+              } else {
+                // Пробуем кликнуть по координатам
+                console.log('📝 Пробую клик по координатам dropdown...');
+                // В модалке dropdown обычно слева вверху
+                const box = await page.locator('[class*="modal"]').boundingBox();
+                if (box) {
+                  // Кликаем примерно где dropdown типа
+                  await page.mouse.click(box.x + 100, box.y + 120);
+                  await page.waitForTimeout(1000);
+                  await page.screenshot({ path: '02_dropdown_click.png', fullPage: true });
+                  
+                  // Ищем CNAME в появившемся списке
+                  await page.click('text=CNAME', { timeout: 5000 }).catch(() => {
+                    console.log('CNAME не найден, пробую другой способ');
+                  });
+                }
+              }
+              
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '01_dropdown_open.png', fullPage: true });
+              await page.screenshot({ path: '03_after_type.png', fullPage: true });
               
-              // Выбираем CNAME
-              console.log('📝 Выбираю CNAME...');
-              await page.click('text=CNAME >> nth=0');
-              await page.waitForTimeout(1000);
-              await page.screenshot({ path: '02_cname_selected.png', fullPage: true });
+              // Заполняем поля через Tab navigation
+              console.log('📝 Заполняю поля...');
               
-              // Заполняем хост (portal)
-              console.log('📝 Ввожу portal...');
-              // Поле хоста - первый текстовый input
-              const hostInput = await page.locator('input').filter({ hasText: '' }).first();
-              await page.fill('input >> nth=1', 'portal');
-              await page.waitForTimeout(500);
+              // Находим все input в модалке
+              const inputs = await page.$$('[class*="modal"] input, [role="dialog"] input');
+              console.log('Найдено inputs:', inputs.length);
               
-              // Заполняем target (cname.vercel-dns.com)
-              console.log('📝 Ввожу cname.vercel-dns.com...');
-              // После выбора CNAME должно появиться поле target
-              await page.fill('input >> nth=2', 'cname.vercel-dns.com');
-              await page.waitForTimeout(500);
-              await page.screenshot({ path: '03_filled.png', fullPage: true });
+              for (let i = 0; i < inputs.length; i++) {
+                const placeholder = await inputs[i].getAttribute('placeholder');
+                const name = await inputs[i].getAttribute('name');
+                const type = await inputs[i].getAttribute('type');
+                console.log(`Input ${i}: placeholder="${placeholder}", name="${name}", type="${type}"`);
+                
+                if (placeholder?.includes('Хост') || name?.includes('host') || name?.includes('name')) {
+                  await inputs[i].fill('portal');
+                  console.log('  → Заполнил portal');
+                } else if (type !== 'hidden' && !placeholder?.includes('TTL')) {
+                  await inputs[i].fill('cname.vercel-dns.com');
+                  console.log('  → Заполнил cname.vercel-dns.com');
+                }
+              }
+              
+              await page.screenshot({ path: '04_filled.png', fullPage: true });
               
               // Сохраняем
               console.log('💾 Сохраняю...');
               await page.click('button:has-text("Сохранить")');
               await page.waitForTimeout(3000);
-              await page.screenshot({ path: '04_result.png', fullPage: true });
+              await page.screenshot({ path: '05_result.png', fullPage: true });
               
-              // Проверяем
-              const newContent = await page.content();
-              if (newContent.includes('portal')) {
-                console.log('✅ УСПЕХ! Запись portal добавлена!');
-              } else {
-                console.log('⚠️ Проверь скриншоты');
+              content = await page.content();
+              if (content.includes('portal')) {
+                console.log('✅ УСПЕХ!');
               }
               
             } catch (e) {
