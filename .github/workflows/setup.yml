@@ -9,18 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      
-      - name: Run migration
+      - name: Run SQL via Management API
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          # Создаём SQL файл
-          cat > migration.sql << 'SQL'
+          # SQL для выполнения
+          SQL=$(cat << 'ENDSQL'
           CREATE TABLE IF NOT EXISTS clients (
               id TEXT PRIMARY KEY,
               name TEXT NOT NULL,
@@ -61,9 +55,20 @@ jobs:
           ('escooter', 'Электросамокаты СПб', NULL, 'repair', 'presale'),
           ('geely', 'Geely A2Auto', 'geely-a2auto.ru', 'automotive', 'presale')
           ON CONFLICT (id) DO NOTHING;
+          ENDSQL
+          )
           
-          SELECT 'Done! Clients: ' || count(*) FROM clients;
-          SQL
+          echo "Executing SQL via Supabase API..."
           
-          # Используем supabase db execute
-          supabase db execute --project-ref fgnegxazufjriauvfkfy -f migration.sql
+          # Supabase Management API для SQL
+          curl -X POST "https://api.supabase.com/v1/projects/fgnegxazufjriauvfkfy/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\": $(echo "$SQL" | jq -Rs .)}"
+          
+          echo ""
+          echo "Checking tables..."
+          curl -X POST "https://api.supabase.com/v1/projects/fgnegxazufjriauvfkfy/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"query": "SELECT tablename FROM pg_tables WHERE schemaname = '\''public'\''"}' 
