@@ -9,28 +9,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install psql
-        run: sudo apt-get install -y postgresql-client
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
       
-      - name: Run migration via direct connection
+      - name: Run migration
         env:
-          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          # Direct connection to Supabase
-          export PGPASSWORD="$DB_PASSWORD"
-          
-          echo "Testing connection..."
-          psql -h db.fgnegxazufjriauvfkfy.supabase.co -p 5432 -U postgres -d postgres -c "SELECT version();" || {
-            echo "Direct failed, trying IPv4..."
-            # Resolve to IPv4
-            IP=$(dig +short db.fgnegxazufjriauvfkfy.supabase.co A | head -1)
-            echo "IPv4: $IP"
-            psql -h $IP -p 5432 -U postgres -d postgres -c "SELECT version();"
-          }
-          
-          echo "Running migration..."
-          psql -h db.fgnegxazufjriauvfkfy.supabase.co -p 5432 -U postgres -d postgres << 'SQL'
-          
+          # Создаём SQL файл
+          cat > migration.sql << 'SQL'
           CREATE TABLE IF NOT EXISTS clients (
               id TEXT PRIMARY KEY,
               name TEXT NOT NULL,
@@ -72,5 +62,8 @@ jobs:
           ('geely', 'Geely A2Auto', 'geely-a2auto.ru', 'automotive', 'presale')
           ON CONFLICT (id) DO NOTHING;
           
-          SELECT '✅ Done! Clients: ' || count(*) FROM clients;
+          SELECT 'Done! Clients: ' || count(*) FROM clients;
           SQL
+          
+          # Используем supabase db execute
+          supabase db execute --project-ref fgnegxazufjriauvfkfy -f migration.sql
