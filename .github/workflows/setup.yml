@@ -10,35 +10,29 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install psql
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client dnsutils
       
-      - name: Force IPv4 and run migration
+      - name: Run migration via pooler
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          # Получаем IPv4 адрес
-          IPV4=$(dig +short A db.fgnegxazufjriauvfkfy.supabase.co | head -1)
-          echo "Using IPv4: $IPV4"
+          # Supavisor Transaction Mode Pooler
+          # Важно: для transaction mode нельзя использовать prepared statements
           
-          # Если нет IPv4, пробуем pooler
-          if [ -z "$IPV4" ]; then
-            echo "No IPv4, trying pooler..."
-            IPV4=$(dig +short A aws-0-eu-central-1.pooler.supabase.com | head -1)
-            export PGHOST="$IPV4"
-            export PGPORT=5432
-            export PGUSER="postgres.fgnegxazufjriauvfkfy"
-          else
-            export PGHOST="$IPV4"
-            export PGPORT=5432
-            export PGUSER="postgres"
-          fi
-          
+          export PGHOST="aws-0-eu-central-1.pooler.supabase.com"
+          export PGPORT=6543
+          export PGUSER="postgres.fgnegxazufjriauvfkfy"
           export PGDATABASE=postgres
           export PGSSLMODE=require
           
-          echo "Connecting to $PGHOST:$PGPORT as $PGUSER..."
+          echo "Connecting to $PGHOST:$PGPORT..."
           
-          psql << 'SQL'
+          # Проверяем DNS
+          echo "DNS lookup:"
+          dig +short $PGHOST | head -3
+          
+          # Выполняем SQL (без prepared statements для transaction mode)
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" << 'SQL'
           
           CREATE TABLE IF NOT EXISTS clients (
               id TEXT PRIMARY KEY,
@@ -71,26 +65,6 @@ jobs:
               checked_at TIMESTAMPTZ DEFAULT NOW()
           );
 
-          CREATE TABLE IF NOT EXISTS metrics (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              client_id TEXT REFERENCES clients(id),
-              date DATE NOT NULL,
-              visitors INTEGER DEFAULT 0,
-              leads INTEGER DEFAULT 0,
-              source TEXT,
-              created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-
-          CREATE TABLE IF NOT EXISTS notifications (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              client_id TEXT REFERENCES clients(id),
-              type TEXT NOT NULL,
-              title TEXT NOT NULL,
-              message TEXT,
-              read BOOLEAN DEFAULT FALSE,
-              created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-
           INSERT INTO clients (id, name, domain, type, status) VALUES
           ('tvorim', 'Творим Совершенство', 'tvorimsovershenstvo.ru', 'dental', 'active'),
           ('atribeaute', 'Atribeaute Clinique', 'atribeaute.ru', 'dental', 'active'),
@@ -98,12 +72,7 @@ jobs:
           ('vlpco', 'VLPCo', 'vlpco.ru', 'ecommerce', 'active'),
           ('burenie', 'Бурение скважин', 'burenie-skv.ru', 'industrial', 'active'),
           ('escooter', 'Электросамокаты СПб', NULL, 'repair', 'presale'),
-          ('geely', 'Geely A2Auto', 'geely-a2auto.ru', 'automotive', 'presale'),
-          ('jivo', 'Jivo Medical', NULL, 'partnership', 'presale'),
-          ('solyarka', 'Solyarka', 'solyarka.com', 'industrial', 'presale'),
-          ('china-motors', 'China Motors', 'china-motors.org', 'automotive', 'presale'),
-          ('alfa-clinic', 'Alfa Clinic', 'alfa-clinic.ru', 'dental', 'presale'),
-          ('pylko', 'Пылко', NULL, 'food', 'presale')
+          ('geely', 'Geely A2Auto', 'geely-a2auto.ru', 'automotive', 'presale')
           ON CONFLICT (id) DO UPDATE SET 
               name = EXCLUDED.name,
               domain = EXCLUDED.domain,
