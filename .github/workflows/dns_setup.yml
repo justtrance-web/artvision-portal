@@ -32,120 +32,143 @@ jobs:
               await page.waitForTimeout(5000);
               console.log('✅ Вошли');
               
-              // ПРЯМОЙ URL на DNS редактор
               console.log('🔍 Открываю DNS редактор...');
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
               await page.waitForTimeout(4000);
               
-              // Закрываем попапы
-              for (let i = 0; i < 5; i++) {
-                await page.keyboard.press('Escape');
-                await page.waitForTimeout(200);
-              }
-              try { await page.click('button:has-text("Закрыть")', { timeout: 1000 }); } catch {}
+              // АГРЕССИВНО закрываем ВСЕ попапы через JS
+              console.log('🧹 Закрываю попапы...');
+              await page.evaluate(() => {
+                // Удаляем NPS survey
+                document.querySelectorAll('[class*="nps"], [class*="survey"], [class*="feedback"]').forEach(el => el.remove());
+                // Удаляем все backdrop/overlay кроме модалок с формами
+                document.querySelectorAll('[class*="backdrop"], [class*="overlay"]').forEach(el => {
+                  if (!el.closest('[class*="modal"]') || !el.querySelector('input')) {
+                    el.remove();
+                  }
+                });
+                // Кликаем все кнопки закрытия
+                document.querySelectorAll('button').forEach(btn => {
+                  const text = btn.textContent?.toLowerCase() || '';
+                  if (text.includes('закрыть') || text.includes('close')) {
+                    btn.click();
+                  }
+                });
+              });
               await page.waitForTimeout(1000);
               
-              await page.screenshot({ path: '01_dns_editor.png', fullPage: true });
-              console.log('URL:', page.url());
+              // ESC для закрытия остальных
+              for (let i = 0; i < 3; i++) {
+                await page.keyboard.press('Escape');
+                await page.waitForTimeout(300);
+              }
+              
+              await page.screenshot({ path: '01_clean.png', fullPage: true });
               
               // Проверяем portal
               const html = await page.content();
-              if (html.includes('portal.artvision.pro') || html.includes('>portal<') || html.match(/portal\s*<\/td>/)) {
-                console.log('⚠️ Запись portal УЖЕ СУЩЕСТВУЕТ!');
+              if (html.includes('portal.artvision.pro') || html.match(/portal\s*CNAME/i)) {
+                console.log('⚠️ Запись portal УЖЕ ЕСТЬ!');
                 await browser.close();
                 return;
               }
               
               // Нажимаем "Добавить запись"
               console.log('➕ Добавить запись...');
-              await page.click('button:has-text("Добавить запись")', { force: true });
+              await page.evaluate(() => {
+                const btn = Array.from(document.querySelectorAll('button')).find(b => 
+                  b.textContent?.includes('Добавить запись')
+                );
+                if (btn) btn.click();
+              });
               await page.waitForTimeout(2000);
-              await page.screenshot({ path: '02_form_opened.png', fullPage: true });
               
-              // Кликаем на dropdown типа (показывает "A")
-              console.log('📝 Открываю dropdown типа...');
-              // Dropdown внутри модального окна
-              const typeButton = await page.$('.modal select, .modal [class*="select"], div[class*="modal"] select');
-              if (typeButton) {
-                await typeButton.click();
-              } else {
-                // Ищем по тексту "A" в модальном окне
-                await page.click('.modal button:has-text("A"), [class*="modal"] button:has-text("A")', { force: true });
-              }
-              await page.waitForTimeout(500);
+              await page.screenshot({ path: '02_form.png', fullPage: true });
               
-              // Если это обычный select
-              const selectEl = await page.$('select');
-              if (selectEl) {
-                console.log('📝 Выбираю CNAME через select...');
-                await selectEl.selectOption('CNAME');
-              } else {
-                // Если это кастомный dropdown - кликаем на опцию CNAME
-                console.log('📝 Выбираю CNAME через клик...');
+              // Выбираем CNAME в select/dropdown
+              console.log('📝 Выбираю CNAME...');
+              
+              // Пробуем через обычный select
+              const selected = await page.evaluate(() => {
+                const select = document.querySelector('select');
+                if (select) {
+                  select.value = 'CNAME';
+                  select.dispatchEvent(new Event('change', { bubbles: true }));
+                  return true;
+                }
+                return false;
+              });
+              
+              if (!selected) {
+                // Если нет select, кликаем на dropdown и выбираем CNAME
+                await page.click('[class*="select"], [class*="dropdown"]', { force: true });
+                await page.waitForTimeout(500);
                 await page.click('text=CNAME', { force: true });
               }
+              
               await page.waitForTimeout(1000);
+              await page.screenshot({ path: '03_cname.png', fullPage: true });
               
-              await page.screenshot({ path: '03_cname_selected.png', fullPage: true });
-              
-              // Заполняем хост - первый input в модалке
-              console.log('📝 Заполняю хост: portal');
-              const hostInput = await page.$('.modal input[type="text"]:first-of-type, [class*="modal"] input:not([type="hidden"]):first-of-type');
-              if (hostInput) {
-                await hostInput.fill('portal');
-              } else {
-                // Fallback - заполняем через evaluate
-                await page.evaluate(() => {
-                  const inputs = document.querySelectorAll('input:not([type="hidden"])');
-                  for (const input of inputs) {
-                    if (!input.value) {
-                      input.value = 'portal';
-                      input.dispatchEvent(new Event('input', { bubbles: true }));
-                      break;
-                    }
-                  }
-                });
-              }
-              await page.waitForTimeout(500);
-              
-              // Заполняем значение CNAME
-              console.log('📝 Заполняю значение: cname.vercel-dns.com');
+              // Заполняем поля через JS
+              console.log('📝 Заполняю поля...');
               await page.evaluate(() => {
-                const inputs = document.querySelectorAll('input:not([type="hidden"])');
-                let foundFirst = false;
+                const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"])'));
+                let hostFilled = false;
+                
                 for (const input of inputs) {
-                  if (input.value === 'portal') {
-                    foundFirst = true;
-                    continue;
-                  }
-                  if (foundFirst && !input.value) {
+                  if (input.type === 'hidden' || input.value) continue;
+                  
+                  // Находим инпут рядом с .artvision.pro
+                  const parent = input.closest('div');
+                  const nearby = parent?.textContent || '';
+                  
+                  if (!hostFilled && (nearby.includes('.artvision.pro') || nearby.includes('Хост'))) {
+                    input.value = 'portal';
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    hostFilled = true;
+                    console.log('Заполнил хост');
+                  } else if (hostFilled && !input.value) {
                     input.value = 'cname.vercel-dns.com';
                     input.dispatchEvent(new Event('input', { bubbles: true }));
+                    console.log('Заполнил значение');
                     break;
                   }
                 }
               });
-              await page.waitForTimeout(500);
               
+              await page.waitForTimeout(500);
               await page.screenshot({ path: '04_filled.png', fullPage: true });
               
-              // Сохраняем
+              // Сохраняем через JS (обходим overlay)
               console.log('💾 Сохраняю...');
-              await page.click('button:has-text("Сохранить")', { force: true });
-              await page.waitForTimeout(4000);
+              const saved = await page.evaluate(() => {
+                const btn = Array.from(document.querySelectorAll('button')).find(b => 
+                  b.textContent?.includes('Сохранить')
+                );
+                if (btn) {
+                  btn.click();
+                  return true;
+                }
+                return false;
+              });
               
+              if (saved) {
+                console.log('✅ Кнопка Сохранить нажата!');
+              } else {
+                console.log('❌ Кнопка Сохранить не найдена');
+              }
+              
+              await page.waitForTimeout(4000);
               await page.screenshot({ path: '05_result.png', fullPage: true });
               
               // Проверяем
               const result = await page.content();
-              if (result.includes('portal')) {
-                console.log('✅✅✅ УСПЕХ! Запись portal добавлена!');
-              } else {
-                console.log('❓ Проверь скриншот 05_result.png');
+              if (result.includes('portal') && !result.includes('Новая запись')) {
+                console.log('✅✅✅ УСПЕХ!');
               }
               
             } catch (e) {
-              console.error('❌ Ошибка:', e.message);
+              console.error('❌', e.message);
               await page.screenshot({ path: 'error.png', fullPage: true });
             }
             
