@@ -23,100 +23,88 @@ jobs:
             const page = await browser.newPage();
             
             try {
-              console.log('🌐 Открываю Timeweb...');
+              console.log('🌐 Timeweb...');
               await page.goto('https://hosting.timeweb.ru/login', { timeout: 60000 });
               await page.waitForTimeout(2000);
               
-              console.log('🔑 Логинюсь...');
+              console.log('🔑 Login...');
               await page.fill('input[name="username"]', 'cp02586');
               await page.fill('input[name="password"]', '6CNgRdxX222');
               await page.click('button[type="submit"]');
               await page.waitForTimeout(5000);
               
-              console.log('🔍 Открываю DNS...');
+              console.log('🔍 DNS...');
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
               await page.waitForTimeout(3000);
               
-              // Проверяем portal
               let content = await page.content();
               if (content.includes('portal.artvision.pro')) {
-                console.log('✅ Запись portal УЖЕ существует!');
+                console.log('✅ portal УЖЕ есть!');
                 await browser.close();
                 return;
               }
               
-              console.log('➕ Открываю форму...');
+              console.log('➕ Форма...');
               await page.click('button:has-text("Добавить")');
               await page.waitForTimeout(2000);
               
-              // Выводим все кнопки в диалоге
-              const buttons = await page.evaluate(() => {
-                return Array.from(document.querySelectorAll('[class*="dialog"] button')).map(b => ({
-                  class: b.className,
-                  text: b.textContent?.trim().substring(0, 30),
-                  dataTestId: b.getAttribute('data-test-id')
-                }));
-              });
-              console.log('Buttons in dialog:', JSON.stringify(buttons, null, 2));
-              
-              // Кликаем на кнопку с data-test-id или класс button
-              console.log('📝 Кликаю на dropdown...');
-              await page.click('[data-test-id="Type-selected-value"]', { timeout: 5000 }).catch(async () => {
-                console.log('  data-test-id не сработал, пробую родителя...');
-                // Кликаем на родительскую кнопку
-                await page.evaluate(() => {
-                  const el = document.querySelector('[data-test-id="Type-selected-value"]');
-                  if (el) el.parentElement.click();
-                });
-              });
-              
-              await page.waitForTimeout(1000);
-              await page.screenshot({ path: '02_dropdown.png', fullPage: true });
-              
-              // Ищем CNAME в выпавшем списке
-              console.log('📝 Ищу CNAME...');
-              const options = await page.evaluate(() => {
-                return Array.from(document.querySelectorAll('[class*="option"], [role="option"], li')).map(o => ({
-                  text: o.textContent?.trim(),
-                  class: o.className
-                }));
-              });
-              console.log('Options:', JSON.stringify(options.slice(0, 10), null, 2));
-              
-              // Кликаем на CNAME
+              // Открываем dropdown
+              console.log('📝 Dropdown...');
               await page.evaluate(() => {
-                const opts = document.querySelectorAll('[class*="option"], [role="option"], li');
-                for (const opt of opts) {
-                  if (opt.textContent?.includes('CNAME')) {
-                    opt.click();
-                    return;
+                const btn = document.querySelector('[data-test-id="Type-selected-value"]');
+                if (btn) btn.parentElement.click();
+              });
+              await page.waitForTimeout(1000);
+              await page.screenshot({ path: '01_dropdown.png', fullPage: true });
+              
+              // Кликаем на CNAME - он 4-й в списке (A, AAAA, MX, CNAME)
+              console.log('📝 CNAME...');
+              await page.evaluate(() => {
+                // Ищем элемент с точным текстом CNAME
+                const items = document.querySelectorAll('[class*="option"], [class*="item"], li, div');
+                for (const item of items) {
+                  if (item.textContent?.trim() === 'CNAME') {
+                    item.click();
+                    console.log('Clicked CNAME');
+                    return true;
                   }
                 }
+                return false;
               });
-              
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '03_after_cname.png', fullPage: true });
+              await page.screenshot({ path: '02_cname.png', fullPage: true });
               
-              // Заполняем поля
-              console.log('📝 Заполняю поля...');
+              // Проверяем что тип изменился
+              const typeValue = await page.evaluate(() => {
+                const hidden = document.querySelector('input[name="Type"]');
+                return hidden?.value;
+              });
+              console.log('Type value:', typeValue);
               
-              // Находим все text inputs
-              const inputs = await page.$$('input[type="text"]:visible, input:not([type="hidden"]):visible');
-              console.log('Найдено inputs:', inputs.length);
+              // Заполняем поля - только text inputs
+              console.log('📝 Поля...');
+              const textInputs = await page.$$('input[type="text"]');
+              console.log('Text inputs:', textInputs.length);
               
-              // Первый - хост, второй - значение
-              if (inputs.length >= 2) {
-                await inputs[0].fill('portal');
-                await inputs[1].fill('cname.vercel-dns.com');
+              // Первый text input - хост
+              if (textInputs.length > 0) {
+                await textInputs[0].fill('portal');
+                console.log('  portal -> input 0');
               }
               
-              await page.screenshot({ path: '04_filled.png', fullPage: true });
+              // Второй text input - target
+              if (textInputs.length > 1) {
+                await textInputs[1].fill('cname.vercel-dns.com');
+                console.log('  cname.vercel-dns.com -> input 1');
+              }
+              
+              await page.screenshot({ path: '03_filled.png', fullPage: true });
               
               // Сохраняем
-              console.log('💾 Сохраняю...');
+              console.log('💾 Save...');
               await page.click('button:has-text("Сохранить")');
               await page.waitForTimeout(3000);
-              await page.screenshot({ path: '05_result.png', fullPage: true });
+              await page.screenshot({ path: '04_result.png', fullPage: true });
               
               content = await page.content();
               if (content.includes('portal')) {
@@ -126,7 +114,7 @@ jobs:
               }
               
             } catch (e) {
-              console.error('❌ Ошибка:', e.message);
+              console.error('❌:', e.message);
               await page.screenshot({ path: 'error.png', fullPage: true });
             }
             
