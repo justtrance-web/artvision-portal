@@ -14,9 +14,9 @@ jobs:
       
       - name: Run migration
         env:
-          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          psql -h db.fgnegxazufjriauvfkfy.supabase.co -p 5432 -U postgres -d postgres << 'SQL'
+          psql "$DATABASE_URL" << 'SQL'
           
           -- Клиенты
           CREATE TABLE IF NOT EXISTS clients (
@@ -94,6 +94,5 @@ jobs:
               type = EXCLUDED.type,
               status = EXCLUDED.status;
           
-          SELECT 'Migration complete! Tables: ' || string_agg(tablename, ', ') 
-          FROM pg_tables WHERE schemaname = 'public';
+          SELECT '✅ Migration complete! Clients: ' || count(*) FROM clients;
           SQL
