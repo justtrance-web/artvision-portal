@@ -13,7 +13,7 @@ jobs:
           npm install playwright
           npx playwright install chromium
       
-      - name: Analyze and Add CNAME
+      - name: Add CNAME record
         run: |
           cat > setup_dns.js << 'SCRIPT'
           const { chromium } = require('playwright');
@@ -30,144 +30,101 @@ jobs:
               await page.fill('input[name="password"]', '6CNgRdxX222');
               await page.click('button[type="submit"]');
               await page.waitForTimeout(5000);
-              console.log('✅ Вошли');
+              console.log('✅ Вошли, URL:', page.url());
               
-              console.log('🔍 Открываю DNS...');
-              await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
-              await page.waitForTimeout(4000);
+              // Навигация через меню: Домены
+              console.log('🔍 Домены...');
+              await page.click('text=Домены');
+              await page.waitForTimeout(2000);
+              
+              // Мои домены
+              await page.click('text=Мои домены');
+              await page.waitForTimeout(3000);
+              
+              await page.screenshot({ path: '01_domains.png', fullPage: true });
+              console.log('URL доменов:', page.url());
+              
+              // Ищем artvision.pro и кликаем
+              console.log('🔍 artvision.pro...');
+              await page.click('text=artvision.pro');
+              await page.waitForTimeout(3000);
+              
+              await page.screenshot({ path: '02_domain_settings.png', fullPage: true });
+              console.log('URL настроек:', page.url());
+              
+              // Переходим на вкладку DNS
+              console.log('🔍 DNS...');
+              await page.click('text=Редактор DNS');
+              await page.waitForTimeout(3000);
               
               // Закрываем попапы
-              await page.evaluate(() => {
-                document.querySelectorAll('[class*="nps"], [class*="survey"]').forEach(el => el.remove());
-              });
               for (let i = 0; i < 3; i++) {
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(300);
               }
-              try { await page.click('button:has-text("Закрыть")', { timeout: 1000 }); } catch {}
+              try { await page.click('button:has-text("Закрыть")', { timeout: 2000 }); } catch {}
+              
+              await page.screenshot({ path: '03_dns.png', fullPage: true });
+              console.log('URL DNS:', page.url());
               
               // Проверяем portal
               const html = await page.content();
-              if (html.includes('portal.artvision.pro')) {
-                console.log('⚠️ Запись portal УЖЕ ЕСТЬ!');
+              if (html.includes('portal.artvision.pro') || html.includes('>portal<')) {
+                console.log('⚠️ Запись portal уже есть!');
                 await browser.close();
                 return;
               }
               
-              // Нажимаем "Добавить запись"
+              // Добавить запись
               console.log('➕ Добавить запись...');
               await page.click('button:has-text("Добавить запись")');
-              await page.waitForTimeout(3000);
+              await page.waitForTimeout(2000);
               
-              await page.screenshot({ path: '01_modal.png', fullPage: true });
+              await page.screenshot({ path: '04_form.png', fullPage: true });
               
-              // АНАЛИЗИРУЕМ структуру формы
-              console.log('📊 Анализирую форму...');
-              const formInfo = await page.evaluate(() => {
-                const result = {
-                  selects: [],
-                  inputs: [],
-                  buttons: []
-                };
-                
-                // Найдём все select
-                document.querySelectorAll('select').forEach((s, i) => {
-                  result.selects.push({
-                    index: i,
-                    name: s.name,
-                    className: s.className,
-                    options: Array.from(s.options).map(o => o.value),
-                    visible: s.offsetParent !== null
-                  });
-                });
-                
-                // Найдём все input
-                document.querySelectorAll('input').forEach((inp, i) => {
-                  if (inp.type !== 'hidden') {
-                    result.inputs.push({
-                      index: i,
-                      type: inp.type,
-                      name: inp.name,
-                      placeholder: inp.placeholder,
-                      visible: inp.offsetParent !== null
-                    });
-                  }
-                });
-                
-                // Найдём кнопки
-                document.querySelectorAll('button').forEach((btn, i) => {
-                  result.buttons.push({
-                    index: i,
-                    text: btn.textContent?.trim().substring(0, 30),
-                    visible: btn.offsetParent !== null
-                  });
-                });
-                
-                return result;
-              });
-              
-              console.log('Selects:', JSON.stringify(formInfo.selects, null, 2));
-              console.log('Inputs:', JSON.stringify(formInfo.inputs.slice(0, 10), null, 2));
-              console.log('Buttons:', JSON.stringify(formInfo.buttons.filter(b => b.text?.includes('Сохран') || b.text?.includes('Добав')), null, 2));
-              
-              // Выбираем CNAME через JS напрямую
-              console.log('📝 Выбираю CNAME через JS...');
-              await page.evaluate(() => {
-                const selects = document.querySelectorAll('select');
-                for (const select of selects) {
-                  if (select.offsetParent !== null) { // visible
-                    select.value = 'CNAME';
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('Changed select to CNAME');
-                    break;
-                  }
-                }
-              });
-              
+              // Кликаем на dropdown типа (там "A")
+              console.log('📝 Выбираю тип CNAME...');
+              // Находим select внутри модального окна
+              const modal = page.locator('text=Новая запись').locator('..');
+              await modal.locator('select').first().selectOption('CNAME');
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '02_cname.png', fullPage: true });
               
-              // Заполняем поля через JS
-              console.log('📝 Заполняю поля...');
-              await page.evaluate(() => {
-                const inputs = document.querySelectorAll('input[type="text"]');
-                let filled = 0;
-                for (const input of inputs) {
-                  if (input.offsetParent !== null && !input.value) {
-                    if (filled === 0) {
-                      input.value = 'portal';
-                      input.dispatchEvent(new Event('input', { bubbles: true }));
-                      filled++;
-                    } else if (filled === 1) {
-                      input.value = 'cname.vercel-dns.com';
-                      input.dispatchEvent(new Event('input', { bubbles: true }));
-                      break;
-                    }
-                  }
-                }
-              });
+              await page.screenshot({ path: '05_cname.png', fullPage: true });
               
+              // Заполняем хост = portal
+              console.log('📝 Ввожу portal...');
+              const hostInput = page.locator('input').first();
+              await hostInput.fill('portal');
               await page.waitForTimeout(500);
-              await page.screenshot({ path: '03_filled.png', fullPage: true });
+              
+              // Заполняем значение
+              console.log('📝 Ввожу cname.vercel-dns.com...');
+              // После выбора CNAME должно быть поле для домена
+              const inputs = await page.locator('input:visible').all();
+              for (let i = 0; i < inputs.length; i++) {
+                const val = await inputs[i].inputValue();
+                if (val === '' && i > 0) {
+                  await inputs[i].fill('cname.vercel-dns.com');
+                  console.log('✅ Заполнил значение в input #' + i);
+                  break;
+                }
+              }
+              
+              await page.screenshot({ path: '06_filled.png', fullPage: true });
               
               // Сохраняем
               console.log('💾 Сохраняю...');
-              await page.evaluate(() => {
-                const btns = document.querySelectorAll('button');
-                for (const btn of btns) {
-                  if (btn.textContent?.includes('Сохранить') && btn.offsetParent !== null) {
-                    btn.click();
-                    break;
-                  }
-                }
-              });
-              
+              await page.click('button:has-text("Сохранить")');
               await page.waitForTimeout(4000);
-              await page.screenshot({ path: '04_result.png', fullPage: true });
               
+              await page.screenshot({ path: '07_result.png', fullPage: true });
+              
+              // Проверяем
               const result = await page.content();
-              if (result.includes('portal') && !result.includes('Новая запись')) {
-                console.log('✅✅✅ УСПЕХ!');
+              if (result.includes('portal')) {
+                console.log('✅✅✅ УСПЕХ! Запись portal добавлена!');
+              } else {
+                console.log('❓ Проверь скриншот');
               }
               
             } catch (e) {
