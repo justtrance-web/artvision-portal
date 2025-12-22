@@ -48,40 +48,66 @@ jobs:
               console.log('➕ Открываю форму...');
               await page.click('button:has-text("Добавить")');
               await page.waitForTimeout(2000);
-              await page.screenshot({ path: '01_form.png', fullPage: true });
               
-              // Кликаем на кнопку dropdown типа
-              console.log('📝 Кликаю на dropdown типа...');
-              await page.click('[class*="selectWidget"] button');
+              // Выводим все кнопки в диалоге
+              const buttons = await page.evaluate(() => {
+                return Array.from(document.querySelectorAll('[class*="dialog"] button')).map(b => ({
+                  class: b.className,
+                  text: b.textContent?.trim().substring(0, 30),
+                  dataTestId: b.getAttribute('data-test-id')
+                }));
+              });
+              console.log('Buttons in dialog:', JSON.stringify(buttons, null, 2));
+              
+              // Кликаем на кнопку с data-test-id или класс button
+              console.log('📝 Кликаю на dropdown...');
+              await page.click('[data-test-id="Type-selected-value"]', { timeout: 5000 }).catch(async () => {
+                console.log('  data-test-id не сработал, пробую родителя...');
+                // Кликаем на родительскую кнопку
+                await page.evaluate(() => {
+                  const el = document.querySelector('[data-test-id="Type-selected-value"]');
+                  if (el) el.parentElement.click();
+                });
+              });
+              
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '02_dropdown_open.png', fullPage: true });
+              await page.screenshot({ path: '02_dropdown.png', fullPage: true });
               
-              // Выбираем CNAME из списка
-              console.log('📝 Выбираю CNAME...');
-              // Ищем элемент с текстом CNAME в выпадающем списке
-              await page.click('[class*="option"]:has-text("CNAME"), li:has-text("CNAME"), [role="option"]:has-text("CNAME"), div:has-text("CNAME"):not([class*="select"])');
+              // Ищем CNAME в выпавшем списке
+              console.log('📝 Ищу CNAME...');
+              const options = await page.evaluate(() => {
+                return Array.from(document.querySelectorAll('[class*="option"], [role="option"], li')).map(o => ({
+                  text: o.textContent?.trim(),
+                  class: o.className
+                }));
+              });
+              console.log('Options:', JSON.stringify(options.slice(0, 10), null, 2));
+              
+              // Кликаем на CNAME
+              await page.evaluate(() => {
+                const opts = document.querySelectorAll('[class*="option"], [role="option"], li');
+                for (const opt of opts) {
+                  if (opt.textContent?.includes('CNAME')) {
+                    opt.click();
+                    return;
+                  }
+                }
+              });
+              
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: '03_cname_selected.png', fullPage: true });
+              await page.screenshot({ path: '03_after_cname.png', fullPage: true });
               
-              // Заполняем хост
-              console.log('📝 Заполняю хост = portal...');
-              // Поле хоста после смены типа
-              const hostInput = await page.$('input[name*="ost"], input[name*="name"], input[placeholder*="Хост"]');
-              if (hostInput) {
-                await hostInput.fill('portal');
-              } else {
-                // Пробуем по индексу - первый видимый text input после hidden
-                await page.fill('[class*="dialog"] input:not([type="hidden"]):visible >> nth=0', 'portal');
-              }
+              // Заполняем поля
+              console.log('📝 Заполняю поля...');
               
-              // Заполняем target
-              console.log('📝 Заполняю target = cname.vercel-dns.com...');
-              const targetInput = await page.$('input[name*="alue"], input[name*="arget"], input[name*="ontent"]');
-              if (targetInput) {
-                await targetInput.fill('cname.vercel-dns.com');
-              } else {
-                // Второй видимый input
-                await page.fill('[class*="dialog"] input:not([type="hidden"]):visible >> nth=1', 'cname.vercel-dns.com');
+              // Находим все text inputs
+              const inputs = await page.$$('input[type="text"]:visible, input:not([type="hidden"]):visible');
+              console.log('Найдено inputs:', inputs.length);
+              
+              // Первый - хост, второй - значение
+              if (inputs.length >= 2) {
+                await inputs[0].fill('portal');
+                await inputs[1].fill('cname.vercel-dns.com');
               }
               
               await page.screenshot({ path: '04_filled.png', fullPage: true });
@@ -94,7 +120,7 @@ jobs:
               
               content = await page.content();
               if (content.includes('portal')) {
-                console.log('✅ УСПЕХ! Запись portal добавлена!');
+                console.log('✅ УСПЕХ!');
               } else {
                 console.log('⚠️ Проверь скриншоты');
               }
