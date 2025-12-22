@@ -22,86 +22,116 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage();
             
-            console.log('🌐 Открываю Timeweb...');
-            await page.goto('https://hosting.timeweb.ru/login');
-            await page.waitForLoadState('networkidle');
-            
-            console.log('🔑 Логинюсь...');
-            await page.fill('input[name="login"]', 'cp02586');
-            await page.fill('input[name="password"]', '6CNgRdxX222');
-            await page.click('button[type="submit"]');
-            
-            await page.waitForLoadState('networkidle');
-            await page.waitForTimeout(3000);
-            
-            console.log('URL после логина:', page.url());
-            await page.screenshot({ path: 'step1_after_login.png' });
-            
-            // Ищем раздел доменов
-            console.log('🔍 Ищу раздел доменов...');
-            
-            // Пробуем разные варианты навигации
-            const domainLinks = await page.$$('a[href*="domain"], a:has-text("Домены"), a:has-text("домен")');
-            console.log('Найдено ссылок на домены:', domainLinks.length);
-            
-            if (domainLinks.length > 0) {
-              await domainLinks[0].click();
-              await page.waitForLoadState('networkidle');
-              await page.waitForTimeout(2000);
-            } else {
-              // Пробуем прямой URL
-              await page.goto('https://hosting.timeweb.ru/domains');
-              await page.waitForLoadState('networkidle');
-            }
-            
-            await page.screenshot({ path: 'step2_domains.png' });
-            console.log('URL доменов:', page.url());
-            
-            // Ищем artvision.pro
-            console.log('🔍 Ищу artvision.pro...');
-            const content = await page.content();
-            
-            if (content.includes('artvision.pro')) {
-              console.log('✅ Нашёл artvision.pro!');
+            try {
+              console.log('🌐 Открываю Timeweb...');
+              await page.goto('https://hosting.timeweb.ru/login', { timeout: 60000 });
+              await page.waitForTimeout(3000);
               
-              // Кликаем на домен
-              const domainLink = await page.$('a:has-text("artvision.pro"), tr:has-text("artvision.pro") a');
-              if (domainLink) {
-                await domainLink.click();
-                await page.waitForLoadState('networkidle');
-                await page.waitForTimeout(2000);
+              await page.screenshot({ path: '01_login_page.png', fullPage: true });
+              
+              // Анализируем форму
+              const html = await page.content();
+              console.log('=== АНАЛИЗ ФОРМЫ ===');
+              
+              // Ищем все input
+              const inputs = await page.$$eval('input', els => els.map(e => ({
+                name: e.name,
+                id: e.id,
+                type: e.type,
+                placeholder: e.placeholder
+              })));
+              console.log('Inputs:', JSON.stringify(inputs, null, 2));
+              
+              // Ищем все кнопки
+              const buttons = await page.$$eval('button', els => els.map(e => ({
+                text: e.textContent?.trim(),
+                type: e.type
+              })));
+              console.log('Buttons:', JSON.stringify(buttons, null, 2));
+              
+              // Пробуем заполнить форму
+              console.log('🔑 Заполняю форму...');
+              
+              // Ищем поле логина разными способами
+              const loginField = await page.$('input[name="login"], input[type="text"], input[placeholder*="Логин"], input[id*="login"]');
+              const passField = await page.$('input[name="password"], input[type="password"]');
+              
+              if (loginField && passField) {
+                await loginField.fill('cp02586');
+                await passField.fill('6CNgRdxX222');
+                await page.screenshot({ path: '02_filled_form.png' });
+                
+                console.log('📤 Отправляю форму...');
+                
+                // Ищем кнопку отправки
+                const submitBtn = await page.$('button[type="submit"], input[type="submit"], button:has-text("Войти")');
+                if (submitBtn) {
+                  await submitBtn.click();
+                } else {
+                  await page.keyboard.press('Enter');
+                }
+                
+                await page.waitForTimeout(5000);
+                await page.screenshot({ path: '03_after_login.png', fullPage: true });
+                
+                console.log('URL после логина:', page.url());
+                
+                // Проверяем успешность
+                if (page.url().includes('login')) {
+                  console.log('❌ Всё ещё на странице логина');
+                } else {
+                  console.log('✅ Вошли!');
+                  
+                  // Идём к доменам
+                  await page.goto('https://hosting.timeweb.ru/domains', { timeout: 30000 });
+                  await page.waitForTimeout(3000);
+                  await page.screenshot({ path: '04_domains.png', fullPage: true });
+                  
+                  const domainContent = await page.content();
+                  if (domainContent.includes('artvision.pro')) {
+                    console.log('✅ Нашёл artvision.pro!');
+                    
+                    // Кликаем на домен
+                    await page.click('text=artvision.pro');
+                    await page.waitForTimeout(2000);
+                    await page.screenshot({ path: '05_domain_detail.png', fullPage: true });
+                    
+                    // Ищем DNS
+                    const dnsTab = await page.$('text=DNS, a[href*="dns"]');
+                    if (dnsTab) {
+                      await dnsTab.click();
+                      await page.waitForTimeout(2000);
+                      await page.screenshot({ path: '06_dns.png', fullPage: true });
+                      
+                      console.log('📋 DNS страница открыта');
+                      
+                      // Добавляем запись
+                      const addBtn = await page.$('text=Добавить, button:has-text("Добавить")');
+                      if (addBtn) {
+                        await addBtn.click();
+                        await page.waitForTimeout(1000);
+                        await page.screenshot({ path: '07_add_form.png', fullPage: true });
+                        
+                        // Заполняем CNAME
+                        // Нужно понять структуру формы
+                      }
+                    }
+                  } else {
+                    console.log('❌ artvision.pro не найден');
+                    console.log('Контент:', domainContent.substring(0, 3000));
+                  }
+                }
+              } else {
+                console.log('❌ Поля формы не найдены');
+                console.log('HTML:', html.substring(0, 5000));
               }
               
-              await page.screenshot({ path: 'step3_domain_page.png' });
-              
-              // Ищем DNS записи
-              const dnsLink = await page.$('a:has-text("DNS"), a[href*="dns"], button:has-text("DNS")');
-              if (dnsLink) {
-                console.log('🔍 Открываю DNS...');
-                await dnsLink.click();
-                await page.waitForLoadState('networkidle');
-                await page.waitForTimeout(2000);
-              }
-              
-              await page.screenshot({ path: 'step4_dns.png' });
-              
-              // Пробуем добавить запись
-              const addButton = await page.$('button:has-text("Добавить"), a:has-text("Добавить"), button:has-text("Add")');
-              if (addButton) {
-                console.log('➕ Добавляю запись...');
-                await addButton.click();
-                await page.waitForTimeout(1000);
-                await page.screenshot({ path: 'step5_add_form.png' });
-              }
-              
-            } else {
-              console.log('❌ artvision.pro не найден на странице');
-              console.log('Содержимое страницы (первые 2000 символов):');
-              console.log(content.substring(0, 2000));
+            } catch (e) {
+              console.error('Ошибка:', e.message);
+              await page.screenshot({ path: 'error.png', fullPage: true });
             }
             
             await browser.close();
-            console.log('✅ Готово!');
           })();
           SCRIPT
           
