@@ -1,0 +1,115 @@
+name: Setup DNS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-dns:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install chromium
+      
+      - name: Setup DNS in Timeweb
+        run: |
+          cat > setup_dns.js << 'SCRIPT'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+            
+            console.log('🌐 Открываю Timeweb...');
+            await page.goto('https://hosting.timeweb.ru/login');
+            await page.waitForLoadState('networkidle');
+            
+            console.log('🔑 Логинюсь...');
+            await page.fill('input[name="login"]', 'cp02586');
+            await page.fill('input[name="password"]', '6CNgRdxX222');
+            await page.click('button[type="submit"]');
+            
+            await page.waitForLoadState('networkidle');
+            await page.waitForTimeout(3000);
+            
+            console.log('URL после логина:', page.url());
+            await page.screenshot({ path: 'step1_after_login.png' });
+            
+            // Ищем раздел доменов
+            console.log('🔍 Ищу раздел доменов...');
+            
+            // Пробуем разные варианты навигации
+            const domainLinks = await page.$$('a[href*="domain"], a:has-text("Домены"), a:has-text("домен")');
+            console.log('Найдено ссылок на домены:', domainLinks.length);
+            
+            if (domainLinks.length > 0) {
+              await domainLinks[0].click();
+              await page.waitForLoadState('networkidle');
+              await page.waitForTimeout(2000);
+            } else {
+              // Пробуем прямой URL
+              await page.goto('https://hosting.timeweb.ru/domains');
+              await page.waitForLoadState('networkidle');
+            }
+            
+            await page.screenshot({ path: 'step2_domains.png' });
+            console.log('URL доменов:', page.url());
+            
+            // Ищем artvision.pro
+            console.log('🔍 Ищу artvision.pro...');
+            const content = await page.content();
+            
+            if (content.includes('artvision.pro')) {
+              console.log('✅ Нашёл artvision.pro!');
+              
+              // Кликаем на домен
+              const domainLink = await page.$('a:has-text("artvision.pro"), tr:has-text("artvision.pro") a');
+              if (domainLink) {
+                await domainLink.click();
+                await page.waitForLoadState('networkidle');
+                await page.waitForTimeout(2000);
+              }
+              
+              await page.screenshot({ path: 'step3_domain_page.png' });
+              
+              // Ищем DNS записи
+              const dnsLink = await page.$('a:has-text("DNS"), a[href*="dns"], button:has-text("DNS")');
+              if (dnsLink) {
+                console.log('🔍 Открываю DNS...');
+                await dnsLink.click();
+                await page.waitForLoadState('networkidle');
+                await page.waitForTimeout(2000);
+              }
+              
+              await page.screenshot({ path: 'step4_dns.png' });
+              
+              // Пробуем добавить запись
+              const addButton = await page.$('button:has-text("Добавить"), a:has-text("Добавить"), button:has-text("Add")');
+              if (addButton) {
+                console.log('➕ Добавляю запись...');
+                await addButton.click();
+                await page.waitForTimeout(1000);
+                await page.screenshot({ path: 'step5_add_form.png' });
+              }
+              
+            } else {
+              console.log('❌ artvision.pro не найден на странице');
+              console.log('Содержимое страницы (первые 2000 символов):');
+              console.log(content.substring(0, 2000));
+            }
+            
+            await browser.close();
+            console.log('✅ Готово!');
+          })();
+          SCRIPT
+          
+          node setup_dns.js
+      
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: "*.png"
