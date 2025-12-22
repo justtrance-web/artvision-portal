@@ -1,0 +1,121 @@
+name: Setup Portal
+
+on:
+  workflow_dispatch:
+
+env:
+  SUPABASE_URL: https://fgnegxazufjriauvfkfy.supabase.co
+  SUPABASE_ANON_KEY: sb_publishable_vJw2b2PX2W4ft7W1xSH4qg_b0MYuL_E
+  VERCEL_ORG_ID: team_Q43dRg3EYEc84AN0jNwDzUIB
+
+jobs:
+  setup-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      
+      - name: Run Supabase migration
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          # Supabase direct connection (IPv4)
+          psql "postgresql://postgres:$PGPASSWORD@db.fgnegxazufjriauvfkfy.supabase.co:5432/postgres?sslmode=require" << 'SQL'
+          
+          CREATE TABLE IF NOT EXISTS clients (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              domain TEXT,
+              type TEXT NOT NULL,
+              status TEXT NOT NULL DEFAULT 'presale',
+              telegram_chat_id BIGINT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS reports (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              client_id TEXT REFERENCES clients(id),
+              title TEXT NOT NULL,
+              type TEXT NOT NULL,
+              file_url TEXT,
+              month TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS positions (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              client_id TEXT REFERENCES clients(id),
+              keyword TEXT NOT NULL,
+              position INTEGER,
+              url TEXT,
+              search_engine TEXT DEFAULT 'yandex',
+              region TEXT DEFAULT 'spb',
+              checked_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS metrics (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              client_id TEXT REFERENCES clients(id),
+              date DATE NOT NULL,
+              visitors INTEGER DEFAULT 0,
+              leads INTEGER DEFAULT 0,
+              source TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS notifications (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              client_id TEXT REFERENCES clients(id),
+              type TEXT NOT NULL,
+              title TEXT NOT NULL,
+              message TEXT,
+              read BOOLEAN DEFAULT FALSE,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          INSERT INTO clients (id, name, domain, type, status) VALUES
+          ('tvorim', 'Творим Совершенство', 'tvorimsovershenstvo.ru', 'dental', 'active'),
+          ('atribeaute', 'Atribeaute Clinique', 'atribeaute.ru', 'dental', 'active'),
+          ('ant', 'ANT Partners', 'ant-partners.ru', 'legal', 'active'),
+          ('vlpco', 'VLPCo', 'vlpco.ru', 'ecommerce', 'active'),
+          ('burenie', 'Бурение скважин', 'burenie-skv.ru', 'industrial', 'active'),
+          ('escooter', 'Электросамокаты СПб', NULL, 'repair', 'presale'),
+          ('geely', 'Geely A2Auto', 'geely-a2auto.ru', 'automotive', 'presale'),
+          ('jivo', 'Jivo Medical', NULL, 'partnership', 'presale'),
+          ('solyarka', 'Solyarka', 'solyarka.com', 'industrial', 'presale'),
+          ('china-motors', 'China Motors', 'china-motors.org', 'automotive', 'presale'),
+          ('alfa-clinic', 'Alfa Clinic', 'alfa-clinic.ru', 'dental', 'presale'),
+          ('pylko', 'Пылко', NULL, 'food', 'presale')
+          ON CONFLICT (id) DO UPDATE SET 
+              name = EXCLUDED.name,
+              domain = EXCLUDED.domain,
+              type = EXCLUDED.type,
+              status = EXCLUDED.status;
+          
+          SELECT '✅ Tables created! Clients: ' || count(*) FROM clients;
+          SQL
+
+  deploy-vercel:
+    runs-on: ubuntu-latest
+    needs: setup-supabase
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+      
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel pull --yes --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN > deployment_url.txt
+          echo "Deployed to: $(cat deployment_url.txt)"
