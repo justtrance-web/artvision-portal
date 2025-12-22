@@ -36,67 +36,108 @@ jobs:
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
               await page.waitForTimeout(4000);
               
-              // Закрываем попапы через ESC
-              await page.keyboard.press('Escape');
-              await page.waitForTimeout(500);
-              await page.keyboard.press('Escape');
-              await page.waitForTimeout(500);
+              // Закрываем попапы через ESC и клики
+              for (let i = 0; i < 3; i++) {
+                await page.keyboard.press('Escape');
+                await page.waitForTimeout(300);
+              }
               
-              await page.screenshot({ path: '01_dns_page.png', fullPage: true });
+              // Закрываем кнопку "Закрыть"
+              try {
+                await page.click('button:has-text("Закрыть")', { timeout: 2000 });
+              } catch {}
+              
+              // Закрываем NPS (X справа)
+              try {
+                await page.locator('[class*="close"], svg').first().click({ timeout: 1000 });
+              } catch {}
+              
+              await page.waitForTimeout(1000);
+              await page.screenshot({ path: '01_clean.png', fullPage: true });
               
               // Проверяем portal
               const html = await page.content();
-              if (html.includes('portal.artvision.pro') || html.includes('>portal<')) {
-                console.log('⚠️ Запись portal уже существует!');
+              if (html.includes('portal.artvision.pro')) {
+                console.log('⚠️ Запись portal уже есть!');
                 await browser.close();
                 return;
               }
               
-              // Кликаем "Добавить запись" с force
+              // Добавить запись
               console.log('➕ Добавить запись...');
-              await page.click('text=Добавить запись', { force: true });
+              await page.click('button:has-text("Добавить запись")', { force: true });
               await page.waitForTimeout(2000);
               
-              await page.screenshot({ path: '02_form_open.png', fullPage: true });
+              await page.screenshot({ path: '02_form.png', fullPage: true });
               
-              // Кликаем на dropdown типа и выбираем CNAME
-              console.log('📝 Выбираю CNAME...');
-              
-              // Находим select
-              const selectLocator = page.locator('select').first();
-              await selectLocator.selectOption('CNAME');
+              // Кликаем на dropdown с типом "A"
+              console.log('📝 Открываю dropdown типа...');
+              // Ищем элемент с текстом "A" внутри формы "Новая запись"
+              await page.click('text=A >> nth=0', { force: true });
               await page.waitForTimeout(1000);
               
-              await page.screenshot({ path: '03_cname_type.png', fullPage: true });
+              await page.screenshot({ path: '03_dropdown_open.png', fullPage: true });
               
-              // Теперь форма должна измениться - поле для домена вместо IP
+              // Выбираем CNAME
+              console.log('📝 Выбираю CNAME...');
+              await page.click('text=CNAME', { force: true });
+              await page.waitForTimeout(1000);
+              
+              await page.screenshot({ path: '04_cname_selected.png', fullPage: true });
+              
               // Заполняем хост
               console.log('📝 Ввожу portal...');
+              // Поле перед .artvision.pro
+              const inputs = await page.locator('input:visible').all();
+              console.log('Найдено inputs:', inputs.length);
               
-              // Первое текстовое поле - хост
-              const hostInput = page.locator('input[type="text"]').first();
-              await hostInput.fill('portal');
+              // Заполняем первое пустое поле (хост)
+              for (const input of inputs) {
+                const val = await input.inputValue();
+                const type = await input.getAttribute('type');
+                if (type === 'hidden') continue;
+                if (!val || val === '') {
+                  await input.fill('portal');
+                  console.log('✅ Заполнил хост');
+                  break;
+                }
+              }
+              
               await page.waitForTimeout(500);
               
-              // Второе текстовое поле - значение (домен для CNAME)
+              // Заполняем значение (второе пустое поле)
               console.log('📝 Ввожу cname.vercel-dns.com...');
-              const valueInput = page.locator('input[type="text"]').nth(1);
-              await valueInput.fill('cname.vercel-dns.com');
-              await page.waitForTimeout(500);
+              const inputs2 = await page.locator('input:visible').all();
+              let filledHost = false;
+              for (const input of inputs2) {
+                const val = await input.inputValue();
+                const type = await input.getAttribute('type');
+                if (type === 'hidden') continue;
+                
+                if (val === 'portal') {
+                  filledHost = true;
+                  continue;
+                }
+                if (filledHost && (!val || val === '')) {
+                  await input.fill('cname.vercel-dns.com');
+                  console.log('✅ Заполнил значение');
+                  break;
+                }
+              }
               
-              await page.screenshot({ path: '04_filled.png', fullPage: true });
+              await page.screenshot({ path: '05_filled.png', fullPage: true });
               
               // Сохраняем
               console.log('💾 Сохраняю...');
               await page.click('button:has-text("Сохранить")', { force: true });
-              await page.waitForTimeout(3000);
+              await page.waitForTimeout(4000);
               
-              await page.screenshot({ path: '05_result.png', fullPage: true });
+              await page.screenshot({ path: '06_result.png', fullPage: true });
               
               // Проверяем
               const result = await page.content();
-              if (result.includes('portal')) {
-                console.log('✅ УСПЕХ! Запись portal добавлена!');
+              if (result.includes('portal') && !result.includes('Новая запись')) {
+                console.log('✅✅✅ УСПЕХ! Запись portal добавлена!');
               } else {
                 console.log('❓ Проверь скриншот');
               }
