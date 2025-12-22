@@ -23,7 +23,6 @@ jobs:
             const page = await browser.newPage();
             
             try {
-              // Логин
               console.log('🌐 Логинюсь...');
               await page.goto('https://hosting.timeweb.ru/login');
               await page.waitForTimeout(2000);
@@ -33,130 +32,73 @@ jobs:
               await page.waitForTimeout(5000);
               console.log('✅ Вошли');
               
-              // DNS редактор
               console.log('🔍 Открываю DNS...');
               await page.goto('https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro');
-              await page.waitForTimeout(3000);
+              await page.waitForTimeout(4000);
               
-              // Закрываем ВСЕ popups
-              console.log('🧹 Закрываю попапы...');
-              
-              // Закрыть NPS опрос (X в правом верхнем углу)
-              await page.evaluate(() => {
-                // Удаляем все overlay и backdrop
-                document.querySelectorAll('[class*="backdrop"], [class*="overlay"], [class*="modal"]').forEach(el => {
-                  if (!el.querySelector('form')) el.remove();
-                });
-                // Кликаем все кнопки закрытия
-                document.querySelectorAll('button:has(svg), [class*="close"]').forEach(btn => {
-                  if (btn.closest('[class*="nps"], [class*="survey"], [class*="popup"]')) {
-                    btn.click();
-                  }
-                });
-              });
-              await page.waitForTimeout(1000);
-              
-              // Ищем и закрываем кнопку "Закрыть"
-              const closeButtons = await page.$$('button:has-text("Закрыть"), a:has-text("Закрыть")');
-              for (const btn of closeButtons) {
-                try { await btn.click({ force: true }); } catch {}
-              }
+              // Закрываем попапы через ESC
+              await page.keyboard.press('Escape');
+              await page.waitForTimeout(500);
+              await page.keyboard.press('Escape');
               await page.waitForTimeout(500);
               
-              // Закрываем X на NPS
-              const xButtons = await page.$$('[class*="close"], button svg');
-              for (const btn of xButtons) {
-                try { await btn.click({ force: true }); } catch {}
-              }
-              await page.waitForTimeout(500);
-              
-              await page.screenshot({ path: '01_clean.png', fullPage: true });
+              await page.screenshot({ path: '01_dns_page.png', fullPage: true });
               
               // Проверяем portal
               const html = await page.content();
-              if (html.includes('portal.artvision.pro')) {
-                console.log('⚠️ Запись portal уже есть!');
+              if (html.includes('portal.artvision.pro') || html.includes('>portal<')) {
+                console.log('⚠️ Запись portal уже существует!');
                 await browser.close();
                 return;
               }
               
-              // Добавить запись через JS - минуя overlay
-              console.log('➕ Открываю форму через JS...');
-              await page.evaluate(() => {
-                // Находим кнопку и кликаем напрямую
-                const addBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Добавить запись'));
-                if (addBtn) addBtn.click();
-              });
+              // Кликаем "Добавить запись" с force
+              console.log('➕ Добавить запись...');
+              await page.click('text=Добавить запись', { force: true });
               await page.waitForTimeout(2000);
               
-              await page.screenshot({ path: '02_form.png', fullPage: true });
+              await page.screenshot({ path: '02_form_open.png', fullPage: true });
               
-              // Выбираем CNAME через JS
+              // Кликаем на dropdown типа и выбираем CNAME
               console.log('📝 Выбираю CNAME...');
-              await page.evaluate(() => {
-                const select = document.querySelector('select');
-                if (select) {
-                  select.value = 'CNAME';
-                  select.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              });
+              
+              // Находим select
+              const selectLocator = page.locator('select').first();
+              await selectLocator.selectOption('CNAME');
               await page.waitForTimeout(1000);
               
-              await page.screenshot({ path: '03_cname_selected.png', fullPage: true });
+              await page.screenshot({ path: '03_cname_type.png', fullPage: true });
               
-              // Заполняем хост через JS
-              console.log('📝 Заполняю portal...');
-              await page.evaluate(() => {
-                const inputs = document.querySelectorAll('input[type="text"], input:not([type="hidden"])');
-                inputs.forEach(input => {
-                  const parent = input.closest('div');
-                  if (parent && parent.textContent.includes('.artvision.pro')) {
-                    input.value = 'portal';
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                });
-              });
+              // Теперь форма должна измениться - поле для домена вместо IP
+              // Заполняем хост
+              console.log('📝 Ввожу portal...');
+              
+              // Первое текстовое поле - хост
+              const hostInput = page.locator('input[type="text"]').first();
+              await hostInput.fill('portal');
               await page.waitForTimeout(500);
               
-              // Заполняем значение CNAME
-              console.log('📝 Заполняю cname.vercel-dns.com...');
-              await page.evaluate(() => {
-                const inputs = document.querySelectorAll('input');
-                let foundHost = false;
-                inputs.forEach(input => {
-                  if (input.type === 'hidden') return;
-                  if (!foundHost && input.value === '') {
-                    // Первый пустой - хост
-                    input.value = 'portal';
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                    foundHost = true;
-                  } else if (foundHost && input.value === '') {
-                    // Второй пустой - значение
-                    input.value = 'cname.vercel-dns.com';
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                });
-              });
+              // Второе текстовое поле - значение (домен для CNAME)
+              console.log('📝 Ввожу cname.vercel-dns.com...');
+              const valueInput = page.locator('input[type="text"]').nth(1);
+              await valueInput.fill('cname.vercel-dns.com');
               await page.waitForTimeout(500);
               
               await page.screenshot({ path: '04_filled.png', fullPage: true });
               
-              // Сохраняем через JS
+              // Сохраняем
               console.log('💾 Сохраняю...');
-              await page.evaluate(() => {
-                const saveBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Сохранить'));
-                if (saveBtn) saveBtn.click();
-              });
+              await page.click('button:has-text("Сохранить")', { force: true });
               await page.waitForTimeout(3000);
               
               await page.screenshot({ path: '05_result.png', fullPage: true });
               
               // Проверяем
-              const finalHtml = await page.content();
-              if (finalHtml.includes('portal')) {
-                console.log('✅ Запись portal добавлена!');
+              const result = await page.content();
+              if (result.includes('portal')) {
+                console.log('✅ УСПЕХ! Запись portal добавлена!');
               } else {
-                console.log('❓ Проверь результат на скриншоте');
+                console.log('❓ Проверь скриншот');
               }
               
             } catch (e) {
