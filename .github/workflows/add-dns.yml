@@ -1,4 +1,4 @@
-name: Add DNS Record v4
+name: Add DNS Record v5
 
 on:
   workflow_dispatch:
@@ -44,54 +44,54 @@ jobs:
               await page.click("text=Добавить запись");
               await page.waitForTimeout(2000);
               
-              // Кликаем на dropdown с типом (где написано "A")
-              console.log("📝 Открываю dropdown типа...");
-              
-              // Ищем элемент содержащий "A" рядом с "Тип"
-              await page.click("div.select, [class*=\"select\"] >> text=A");
+              // Открываем dropdown типа
+              console.log("📝 Открываю dropdown...");
+              await page.click("[class*=\"select\"] >> text=A");
               await page.waitForTimeout(1000);
-              await page.screenshot({ path: "dropdown_opened.png", fullPage: true });
               
-              // Выбираем CNAME в открывшемся списке
-              console.log("📝 Выбираю CNAME...");
-              await page.click("text=CNAME");
-              await page.waitForTimeout(1000);
-              await page.screenshot({ path: "cname_selected.png", fullPage: true });
+              // Кликаем на CNAME в открывшемся списке (4-й элемент)
+              console.log("📝 Кликаю на CNAME в списке...");
               
-              // Теперь заполняем поля
+              // Ищем элемент списка с текстом CNAME внутри dropdown
+              const cnameOption = await page.$("div[class*=\"option\"]:has-text(\"CNAME\"), li:has-text(\"CNAME\"), [role=\"option\"]:has-text(\"CNAME\")");
+              if (cnameOption) {
+                await cnameOption.click();
+                console.log("✅ Кликнул на CNAME option");
+              } else {
+                // Пробуем по координатам - CNAME 4-й в списке
+                const dropdown = await page.$("[class*=\"dropdown\"], [class*=\"select-menu\"], [class*=\"options\"]");
+                if (dropdown) {
+                  const options = await dropdown.$$("div, li");
+                  console.log("Найдено options:", options.length);
+                  // CNAME обычно 4-й (A, AAAA, MX, CNAME)
+                  if (options.length >= 4) {
+                    await options[3].click();
+                    console.log("✅ Кликнул на 4-й элемент");
+                  }
+                }
+              }
+              
+              await page.waitForTimeout(1500);
+              await page.screenshot({ path: "after_cname.png", fullPage: true });
+              
+              // Проверяем что CNAME выбран
+              const typeText = await page.$eval("[class*=\"select\"]", el => el.textContent).catch(() => "");
+              console.log("Текущий тип:", typeText);
+              
+              // Заполняем поля
               console.log("✏️ Заполняю Хост: portal");
               
-              // Ищем все input в модальном окне
-              const modal = await page.$("div[class*=\"modal\"], div[role=\"dialog\"], .modal");
-              const inputs = modal ? await modal.$$("input") : await page.$$("input");
-              console.log("Найдено inputs:", inputs.length);
+              const inputs = await page.$$("div[class*=\"modal\"] input, [role=\"dialog\"] input");
+              console.log("Найдено inputs в модале:", inputs.length);
               
-              for (let i = 0; i < inputs.length; i++) {
-                const placeholder = await inputs[i].getAttribute("placeholder");
-                const value = await inputs[i].inputValue();
-                console.log(`  Input ${i}: placeholder="${placeholder}", value="${value}"`);
+              // Первый input - хост
+              if (inputs.length > 0) {
+                await inputs[0].fill("portal");
               }
               
-              // Находим поле Хост (пустой input)
-              for (const input of inputs) {
-                const val = await input.inputValue();
-                if (val === "") {
-                  await input.fill("portal");
-                  break;
-                }
-              }
-              
-              await page.waitForTimeout(500);
-              
-              // Находим поле для значения CNAME
-              const allInputs = await page.$$("input");
-              for (const input of allInputs) {
-                const val = await input.inputValue();
-                const placeholder = await input.getAttribute("placeholder") || "";
-                if (val === "" && !placeholder.includes("Хост")) {
-                  await input.fill("cname.vercel-dns.com");
-                  break;
-                }
+              // Второй input - значение (для CNAME это должно быть "Значение")
+              if (inputs.length > 1) {
+                await inputs[1].fill("cname.vercel-dns.com");
               }
               
               await page.screenshot({ path: "form_filled.png", fullPage: true });
