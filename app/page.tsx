@@ -1,241 +1,99 @@
-'use client'
+import { createClient } from "@supabase/supabase-js"
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-interface Client {
-  id: string
-  name: string
-  domain: string | null
-  type: string
-  status: 'active' | 'presale'
+async function getClients() {
+  const { data } = await supabase.from("clients").select("*").order("status")
+  return data || []
 }
 
-interface PositionStats {
-  total: number
-  top3: number
-  top10: number
-  loading: boolean
-  error: boolean
+async function getRecommendations() {
+  const { data } = await supabase.from("recommendations").select("*").order("potential_impressions", { ascending: false })
+  return data || []
 }
 
-const CLIENTS: Client[] = [
-  { id: 'tvorim', name: 'Творим Совершенство', domain: 'tvorimsovershenstvo.ru', type: 'dental', status: 'active' },
-  { id: 'atribeaute', name: 'Atribeaute Clinique', domain: 'atribeaute.ru', type: 'dental', status: 'active' },
-  { id: 'ant', name: 'ANT Partners', domain: 'ant.partners', type: 'legal', status: 'active' },
-  { id: 'vlpco', name: 'VLPCo', domain: 'vlpco.ru', type: 'ecommerce', status: 'active' },
-  { id: 'burenie', name: 'Бурение скважин', domain: 'burenie-skv.ru', type: 'industrial', status: 'active' },
-  { id: 'otido', name: 'Otido Group', domain: 'www.otido-group.ru', type: 'events', status: 'active' },
-  { id: 'extru', name: 'Extru Tech', domain: 'extru-tech-tpk.ru', type: 'industrial', status: 'active' },
-  { id: 'madwave', name: 'Mad Wave', domain: 'madwave.ru', type: 'ecommerce', status: 'active' },
-  { id: 'geely', name: 'Geely A2Auto', domain: 'geely-a2auto.ru', type: 'automotive', status: 'active' },
-  { id: 'escooter', name: 'Электросамокаты СПб', domain: null, type: 'repair', status: 'presale' },
-  { id: 'bluebirds', name: 'Blue Birds', domain: null, type: 'ecommerce', status: 'presale' },
-  { id: 'baburov', name: 'Baburov', domain: null, type: 'legal', status: 'presale' },
-]
-
-export default function Home() {
-  const [isTelegram, setIsTelegram] = useState(false)
-  const [positions, setPositions] = useState<Record<string, PositionStats>>({})
-  const [summaryLoading, setSummaryLoading] = useState(true)
-  
-  useEffect(() => {
-    // Check Telegram Mini App
-    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
-      setIsTelegram(true)
-      const tg = (window as any).Telegram.WebApp
-      tg.ready()
-      tg.expand()
-    }
-    
-    // Load positions for all active clients with domains
-    const activeWithDomains = CLIENTS.filter(c => c.status === 'active' && c.domain)
-    
-    Promise.all(
-      activeWithDomains.map(async (client) => {
-        try {
-          const res = await fetch(`/api/positions/${client.domain}`)
-          const data = await res.json()
-          if (data.error) throw new Error(data.error)
-          return { id: client.id, stats: { total: data.total, top3: data.top3, top10: data.top10, loading: false, error: false } }
-        } catch {
-          return { id: client.id, stats: { total: 0, top3: 0, top10: 0, loading: false, error: true } }
-        }
-      })
-    ).then(results => {
-      const posMap: Record<string, PositionStats> = {}
-      for (const r of results) {
-        posMap[r.id] = r.stats
-      }
-      setPositions(posMap)
-      setSummaryLoading(false)
-    })
-  }, [])
-  
-  const activeClients = CLIENTS.filter(c => c.status === 'active')
-  const presaleClients = CLIENTS.filter(c => c.status === 'presale')
-  
-  // Calculate totals
-  const totalQueries = Object.values(positions).reduce((s, p) => s + p.total, 0)
-  const totalTop3 = Object.values(positions).reduce((s, p) => s + p.top3, 0)
-  const totalTop10 = Object.values(positions).reduce((s, p) => s + p.top10, 0)
+export default async function Home() {
+  const clients = await getClients()
+  const recommendations = await getRecommendations()
+  const activeClients = clients.filter((c: any) => c.status === "active")
+  const presaleClients = clients.filter((c: any) => c.status === "presale")
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white py-10 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold mb-1">🚀 Artvision Portal</h1>
-              <p className="opacity-90 text-sm">Отчёты, позиции и аналитика</p>
-              {isTelegram && (
-                <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs">
-                  📱 Telegram Mini App
-                </span>
-              )}
-            </div>
-            
-            {/* Summary Stats */}
-            {!summaryLoading && (
-              <div className="flex gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold">{totalQueries.toLocaleString()}</div>
-                  <div className="text-xs opacity-80">Запросов</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-emerald-300">{totalTop3}</div>
-                  <div className="text-xs opacity-80">ТОП-3</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-300">{totalTop10}</div>
-                  <div className="text-xs opacity-80">ТОП-10</div>
-                </div>
-              </div>
-            )}
+    <main className="min-h-screen bg-slate-900 text-white p-8">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">🚀 Artvision Portal</h1>
+          <p className="text-slate-400">Клиентский портал — данные из Supabase</p>
+        </header>
+
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <div className="text-3xl font-bold text-blue-400">{activeClients.length}</div>
+            <div className="text-slate-400">Активных</div>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <div className="text-3xl font-bold text-amber-400">{presaleClients.length}</div>
+            <div className="text-slate-400">Presale</div>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <div className="text-3xl font-bold text-green-400">{recommendations.length}</div>
+            <div className="text-slate-400">Рекомендаций</div>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <div className="text-3xl font-bold text-purple-400">✓</div>
+            <div className="text-slate-400">Supabase OK</div>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-6xl mx-auto p-6">
         {/* Active Clients */}
-        <section className="mb-10">
-          <div className="flex items-center gap-3 mb-5 pb-3 border-b-2 border-slate-200">
-            <h2 className="text-xl font-semibold">Активные клиенты</h2>
-            <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-              {activeClients.length}
-            </span>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {activeClients.map(client => (
-              <ClientCard 
-                key={client.id} 
-                client={client} 
-                stats={positions[client.id]}
-              />
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">🟢 Активные клиенты</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {activeClients.map((client: any) => (
+              <div key={client.id} className="bg-slate-800 rounded-xl p-4 border border-slate-700 hover:border-blue-500 transition">
+                <h3 className="font-semibold">{client.name}</h3>
+                <p className="text-slate-400 text-sm">{client.domain}</p>
+                <span className="inline-block mt-2 px-2 py-1 bg-slate-700 rounded text-xs">{client.type}</span>
+              </div>
             ))}
           </div>
         </section>
 
         {/* Presale */}
-        <section>
-          <div className="flex items-center gap-3 mb-5 pb-3 border-b-2 border-slate-200">
-            <h2 className="text-xl font-semibold">Presale</h2>
-            <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-              {presaleClients.length}
-            </span>
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">🟡 Presale</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {presaleClients.map((client: any) => (
+              <div key={client.id} className="bg-slate-800 rounded-xl p-4 border border-slate-700 hover:border-amber-500 transition">
+                <h3 className="font-semibold">{client.name}</h3>
+                <p className="text-slate-400 text-sm">{client.domain}</p>
+              </div>
+            ))}
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {presaleClients.map(client => (
-              <ClientCard key={client.id} client={client} />
+        </section>
+
+        {/* Recommendations */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">💡 Рекомендации (потенциал роста)</h2>
+          <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+            {recommendations.map((rec: any) => (
+              <div key={rec.id} className="flex items-center justify-between p-4 border-b border-slate-700 hover:bg-slate-750">
+                <div>
+                  <div className="font-semibold">{rec.cluster_name}</div>
+                  <div className="text-slate-400 text-sm">{rec.description}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-green-400 font-bold">+{rec.potential_impressions}</div>
+                  <div className="text-slate-500 text-xs">показов</div>
+                </div>
+              </div>
             ))}
           </div>
         </section>
       </div>
-
-      {/* Footer */}
-      <footer className="text-center py-6 text-slate-500 text-sm">
-        Artvision Agency • {new Date().toLocaleDateString('ru-RU')}
-      </footer>
     </main>
-  )
-}
-
-function ClientCard({ client, stats }: { client: Client; stats?: PositionStats }) {
-  const hasStats = stats && !stats.error && stats.total > 0
-  
-  // Status indicator
-  let statusColor = 'bg-slate-200'
-  let statusIcon = '⚪'
-  if (hasStats) {
-    if (stats.top10 >= 20) {
-      statusColor = 'bg-emerald-500'
-      statusIcon = '🟢'
-    } else if (stats.top10 >= 5) {
-      statusColor = 'bg-amber-500'
-      statusIcon = '🟡'
-    } else {
-      statusColor = 'bg-red-400'
-      statusIcon = '🔴'
-    }
-  }
-  
-  return (
-    <div className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-lg">{client.name}</h3>
-        {hasStats && <span title="SEO Health">{statusIcon}</span>}
-      </div>
-      
-      <p className="text-slate-500 text-sm mb-3">
-        {client.domain || '—'} • {client.type}
-      </p>
-      
-      {/* Mini Stats */}
-      {hasStats && (
-        <div className="flex gap-3 mb-4 text-center">
-          <div className="flex-1 bg-slate-50 rounded-lg py-2">
-            <div className="font-bold text-slate-700">{stats.total}</div>
-            <div className="text-xs text-slate-400">запросов</div>
-          </div>
-          <div className="flex-1 bg-emerald-50 rounded-lg py-2">
-            <div className="font-bold text-emerald-600">{stats.top3}</div>
-            <div className="text-xs text-slate-400">ТОП-3</div>
-          </div>
-          <div className="flex-1 bg-blue-50 rounded-lg py-2">
-            <div className="font-bold text-blue-600">{stats.top10}</div>
-            <div className="text-xs text-slate-400">ТОП-10</div>
-          </div>
-        </div>
-      )}
-      
-      {/* Loading state */}
-      {stats?.loading && (
-        <div className="flex gap-3 mb-4">
-          <div className="flex-1 bg-slate-100 rounded-lg py-4 animate-pulse" />
-          <div className="flex-1 bg-slate-100 rounded-lg py-4 animate-pulse" />
-          <div className="flex-1 bg-slate-100 rounded-lg py-4 animate-pulse" />
-        </div>
-      )}
-      
-      <div className="flex flex-wrap gap-2">
-        <Link 
-          href={`/client/${client.id}`}
-          className="px-3 py-1.5 bg-slate-100 text-indigo-600 rounded-lg text-sm font-medium hover:bg-slate-200 transition"
-        >
-          📊 Отчёты
-        </Link>
-        {client.domain && (
-          <Link 
-            href={`/client/${client.id}/positions`}
-            className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-200 transition"
-          >
-            📈 Позиции
-          </Link>
-        )}
-      </div>
-    </div>
   )
 }
