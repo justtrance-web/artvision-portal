@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Artvision Portal</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-light: #818CF8;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --bg-hover: #334155;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* ===== LAYOUT ===== */
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .logo__icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .logo__text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* User Role Switcher */
+        .role-switcher {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 4px;
+            display: flex;
+            margin-bottom: 24px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all .2s;
+        }
+        
+        .role-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Navigation */
+        .nav__section {
+            margin-bottom: 24px;
+        }
+        
+        .nav__title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        
+        .nav__item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all .15s;
+            cursor: pointer;
+        }
+        
+        .nav__item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .nav__item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-light);
+        }
+        
+        .nav__icon { font-size: 18px; width: 24px; text-align: center; }
+        
+        .nav__badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        /* Client Selector (Agency Mode) */
+        .client-selector {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .client-selector__label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .client-selector__current {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        
+        .client-selector__name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .client-selector__status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            padding: 24px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .header__title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header__subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .header__actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all .2s;
+        }
+        
+        .btn--primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn--primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn--ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-card__label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .stat-card__value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .stat-card__trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .stat-card__trend.up {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        
+        .stat-card__trend.down {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .chart-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-card__title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* Bar Chart (CSS only) */
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bar-row__label {
+            width: 60px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .bar-row__track {
+            flex: 1;
+            height: 28px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .bar-row__fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            transition: width .5s ease;
+        }
+        
+        .bar-row__fill.top3 { background: var(--success); }
+        .bar-row__fill.top10 { background: #3B82F6; }
+        .bar-row__fill.top20 { background: var(--warning); }
+        .bar-row__fill.top30 { background: #F97316; }
+        .bar-row__fill.other { background: #64748B; }
+        
+        /* Donut Chart */
+        .donut-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+        
+        .donut {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .donut__center {
+            position: absolute;
+            inset: 25px;
+            background: var(--bg-card);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .donut__value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+        
+        .donut__label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .legend__item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .legend__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        /* Table */
+        .table-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .table-card__header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-card__title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        th {
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr {
+            border-bottom: 1px solid var(--border);
+        }
+        
+        tr:hover {
+            background: var(--bg-hover);
+        }
+        
+        .pos-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .pos-badge.top3 { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .pos-badge.top10 { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+        .pos-badge.top30 { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        
+        /* Upsale Section */
+        .upsale-section {
+            margin-top: 24px;
+        }
+        
+        .upsale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .upsale-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .upsale-card__icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        
+        .upsale-card__title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .upsale-card__text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .upsale-card__impact {
+            font-size: 13px;
+            color: var(--success);
+            margin-bottom: 16px;
+        }
+        
+        .upsale-card__btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* Clients List (Agency Mode) */
+        .clients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .client-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all .2s;
+        }
+        
+        .client-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .client-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .client-card__name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .client-card__domain {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        
+        .client-card__status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .client-card__status.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        
+        .client-card__status.presale {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+        
+        .client-card__stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .client-card__stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .client-card__stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .client-card__stat-value.success { color: var(--success); }
+        .client-card__stat-value.primary { color: var(--primary-light); }
+        
+        .client-card__stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main {
+                margin-left: 0;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-nav {
+                display: flex !important;
+            }
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 8px 16px;
+            justify-content: space-around;
+            z-index: 100;
+        }
+        
+        .mobile-nav__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 10px;
+            padding: 8px;
+        }
+        
+        .mobile-nav__item.active {
+            color: var(--primary-light);
+        }
+        
+        .mobile-nav__icon {
+            font-size: 20px;
+        }
+        
+        /* View Toggles */
+        .view-hidden { display: none !important; }
+        
+        /* Telegram Mini App adjustments */
+        .tg-mode .sidebar { display: none; }
+        .tg-mode .main { margin-left: 0; padding: 16px; }
+        .tg-mode .mobile-nav { display: flex; }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo__icon">A</div>
+                <span class="logo__text">Artvision</span>
+            </div>
+            
+            <!-- Role Switcher -->
+            <div class="role-switcher">
+                <button class="role-btn active" onclick="switchRole('agency')">Агентство</button>
+                <button class="role-btn" onclick="switchRole('client')">Клиент</button>
+            </div>
+            
+            <!-- Client Selector (Agency Mode) -->
+            <div class="client-selector" id="clientSelector">
+                <div class="client-selector__label">Текущий клиент</div>
+                <div class="client-selector__current" onclick="showClientList()">
+                    <span class="client-selector__name" id="currentClientName">Бурение скважин</span>
+                    <span class="client-selector__status"></span>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="nav">
+                <div class="nav__section">
+                    <div class="nav__title">Основное</div>
+                    <a class="nav__item active" onclick="showView('dashboard')">
+                        <span class="nav__icon">📊</span>
+                        Дашборд
+                    </a>
+                    <a class="nav__item" onclick="showView('positions')">
+                        <span class="nav__icon">📈</span>
+                        Позиции
+                    </a>
+                    <a class="nav__item" onclick="showView('reports')">
+                        <span class="nav__icon">📄</span>
+                        Отчёты
+                        <span class="nav__badge">3</span>
+                    </a>
+                    <a class="nav__item" onclick="showView('documents')">
+                        <span class="nav__icon">📁</span>
+                        Документы
+                    </a>
+                </div>
+                
+                <div class="nav__section" id="agencyNav">
+                    <div class="nav__title">Агентство</div>
+                    <a class="nav__item" onclick="showView('clients')">
+                        <span class="nav__icon">👥</span>
+                        Все клиенты
+                        <span class="nav__badge">9</span>
+                    </a>
+                    <a class="nav__item" onclick="showView('tasks')">
+                        <span class="nav__icon">✅</span>
+                        Задачи
+                    </a>
+                    <a class="nav__item" onclick="showView('finances')">
+                        <span class="nav__icon">💰</span>
+                        Финансы
+                    </a>
+                </div>
+                
+                <div class="nav__section">
+                    <div class="nav__title">Telegram</div>
+                    <a class="nav__item" href="https://t.me/avportalbot" target="_blank">
+                        <span class="nav__icon">🤖</span>
+                        Подключить бота
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Dashboard View -->
+            <div id="view-dashboard">
+                <div class="header">
+                    <div>
+                        <h1 class="header__title">Дашборд</h1>
+                        <p class="header__subtitle" id="dashboardSubtitle">Бурение скважин • burenie-skv.ru</p>
+                    </div>
+                    <div class="header__actions">
+                        <button class="btn btn--ghost">📥 Экспорт</button>
+                        <button class="btn btn--primary">📊 Новый отчёт</button>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card__label">Запросов в ТОП-50</div>
+                        <div class="stat-card__value">1,955</div>
+                        <div class="stat-card__trend up">↑ 12% за месяц</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__label">ТОП-3</div>
+                        <div class="stat-card__value" style="color: var(--success)">14</div>
+                        <div class="stat-card__trend up">↑ 3 новых</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__label">ТОП-10</div>
+                        <div class="stat-card__value" style="color: #3B82F6">28</div>
+                        <div class="stat-card__trend up">↑ 5 новых</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__label">Показы</div>
+                        <div class="stat-card__value">33,012</div>
+                        <div class="stat-card__trend up">↑ 18%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__label">Клики</div>
+                        <div class="stat-card__value" style="color: var(--success)">1,847</div>
+                        <div class="stat-card__trend up">↑ 23%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__label">SEO Health</div>
+                        <div class="stat-card__value" style="color: var(--success)">92%</div>
+                        <div class="stat-card__trend up">🟢 Отлично</div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-card__header">
+                            <h3 class="chart-card__title">Распределение позиций</h3>
+                        </div>
+                        <div class="bar-chart">
+                            <div class="bar-row">
+                                <span class="bar-row__label">ТОП-3</span>
+                                <div class="bar-row__track">
+                                    <div class="bar-row__fill top3" style="width: 70%">14</div>
+                                </div>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-row__label">4–10</span>
+                                <div class="bar-row__track">
+                                    <div class="bar-row__fill top10" style="width: 70%">14</div>
+                                </div>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-row__label">11–20</span>
+                                <div class="bar-row__track">
+                                    <div class="bar-row__fill top20" style="width: 100%">35</div>
+                                </div>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-row__label">21–30</span>
+                                <div class="bar-row__track">
+                                    <div class="bar-row__fill top30" style="width: 63%">22</div>
+                                </div>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-row__label">30+</span>
+                                <div class="bar-row__track">
+                                    <div class="bar-row__fill other" style="width: 43%">15</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-card__header">
+                            <h3 class="chart-card__title">В ТОП-10</h3>
+                        </div>
+                        <div class="donut-container">
+                            <div class="donut" style="background: conic-gradient(var(--success) 0deg 50deg, #3B82F6 50deg 100deg, var(--warning) 100deg 205deg, #64748B 205deg 360deg)">
+                                <div class="donut__center">
+                                    <span class="donut__value">28</span>
+                                    <span class="donut__label">ТОП-10</span>
+                                </div>
+                            </div>
+                            <div class="legend">
+                                <div class="legend__item">
+                                    <span class="legend__dot" style="background: var(--success)"></span>
+                                    ТОП-3: 14
+                                </div>
+                                <div class="legend__item">
+                                    <span class="legend__dot" style="background: #3B82F6"></span>
+                                    4–10: 14
+                                </div>
+                                <div class="legend__item">
+                                    <span class="legend__dot" style="background: var(--warning)"></span>
+                                    11–30: 57
+                                </div>
+                                <div class="legend__item">
+                                    <span class="legend__dot" style="background: #64748B"></span>
+                                    30+: 15
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upsale -->
+                <div class="upsale-section">
+                    <h3 style="margin-bottom: 16px; font-size: 18px;">💡 Рекомендации</h3>
+                    <div class="upsale-grid">
+                        <div class="upsale-card">
+                            <div class="upsale-card__icon">📝</div>
+                            <h4 class="upsale-card__title">12 запросов на пороге ТОП-10</h4>
+                            <p class="upsale-card__text">Добавьте контент по этим запросам — высокий шанс попасть в ТОП</p>
+                            <div class="upsale-card__impact">📈 Прогноз: +40% трафика</div>
+                            <a href="#" class="upsale-card__btn">Подробнее</a>
+                        </div>
+                        <div class="upsale-card">
+                            <div class="upsale-card__icon">🔗</div>
+                            <h4 class="upsale-card__title">Нужен аудит ссылочной массы</h4>
+                            <p class="upsale-card__text">Конкуренты наращивают ссылки, нужно догонять</p>
+                            <div class="upsale-card__impact">🛡️ Защита позиций</div>
+                            <a href="#" class="upsale-card__btn">Обсудить</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Clients View (Agency) -->
+            <div id="view-clients" class="view-hidden">
+                <div class="header">
+                    <div>
+                        <h1 class="header__title">Все клиенты</h1>
+                        <p class="header__subtitle">9 активных • 11 presale</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 24px 0 16px; color: var(--success);">🟢 Активные</h3>
+                <div class="clients-grid" id="activeClients"></div>
+                
+                <h3 style="margin: 32px 0 16px; color: var(--warning);">🟡 Presale</h3>
+                <div class="clients-grid" id="presaleClients"></div>
+            </div>
+            
+            <!-- Positions View -->
+            <div id="view-positions" class="view-hidden">
+                <div class="header">
+                    <div>
+                        <h1 class="header__title">Позиции</h1>
+                        <p class="header__subtitle">Топ запросов по показам</p>
+                    </div>
+                </div>
+                
+                <div class="table-card">
+                    <div class="table-card__header">
+                        <h3 class="table-card__title">Топ-20 запросов</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Запрос</th>
+                                <th>Позиция</th>
+                                <th>Показы</th>
+                                <th>Клики</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positionsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav">
+            <a class="mobile-nav__item active" onclick="showView('dashboard')">
+                <span class="mobile-nav__icon">📊</span>
+                Дашборд
+            </a>
+            <a class="mobile-nav__item" onclick="showView('positions')">
+                <span class="mobile-nav__icon">📈</span>
+                Позиции
+            </a>
+            <a class="mobile-nav__item" onclick="showView('reports')">
+                <span class="mobile-nav__icon">📄</span>
+                Отчёты
+            </a>
+            <a class="mobile-nav__item" onclick="showView('clients')">
+                <span class="mobile-nav__icon">👥</span>
+                Клиенты
+            </a>
+        </nav>
+    </div>
+    
+    <script>
+        // Check Telegram Mini App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            document.body.classList.add('tg-mode');
+        }
+        
+        // Data
+        const clients = {
+            active: [
+                { id: 'burenie', name: 'Бурение скважин', domain: 'burenie-skv.ru', total: 1955, top3: 14, top10: 28 },
+                { id: 'madwave', name: 'Mad Wave', domain: 'madwave.ru', total: 2503, top3: 4, top10: 20 },
+                { id: 'otido', name: 'Otido Group', domain: 'otido-group.ru', total: 1367, top3: 2, top10: 28 },
+                { id: 'vlpco', name: 'VLPCo', domain: 'vlpco.ru', total: 516, top3: 11, top10: 23 },
+                { id: 'extru', name: 'Extru Tech', domain: 'extru-tech-tpk.ru', total: 256, top3: 3, top10: 24 },
+                { id: 'tvorim', name: 'Творим Совершенство', domain: 'tvorimsovershenstvo.ru', total: 169, top3: 5, top10: 23 },
+                { id: 'ant', name: 'ANT Partners', domain: 'ant.partners', total: 88, top3: 8, top10: 26 },
+                { id: 'atribeaute', name: 'Atribeaute', domain: 'atribeaute.ru', total: 0, top3: 0, top10: 0 },
+                { id: 'geely', name: 'Geely A2Auto', domain: 'geely-a2auto.ru', total: 3, top3: 0, top10: 1 },
+            ],
+            presale: [
+                { id: 'bluebirds', name: 'Blue Birds', domain: null },
+                { id: 'baburov', name: 'Baburov', domain: null },
+                { id: 'avgaxle', name: 'AVG Axle', domain: null },
+                { id: 'escooter', name: 'Электросамокаты СПб', domain: null },
+            ]
+        };
+        
+        const positions = [
+            { query: 'бурение скважин спб', pos: 2.1, shows: 4521, clicks: 312 },
+            { query: 'скважина на воду цена', pos: 4.3, shows: 3892, clicks: 198 },
+            { query: 'бурение скважин ленинградская область', pos: 1.8, shows: 3245, clicks: 287 },
+            { query: 'артезианская скважина', pos: 5.2, shows: 2987, clicks: 156 },
+            { query: 'бурение скважин под ключ', pos: 3.4, shows: 2654, clicks: 201 },
+            { query: 'водоснабжение частного дома', pos: 8.1, shows: 2341, clicks: 89 },
+            { query: 'обустройство скважины', pos: 2.9, shows: 2156, clicks: 167 },
+            { query: 'скважина для дачи', pos: 6.7, shows: 1987, clicks: 78 },
+            { query: 'бурение скважин стоимость', pos: 4.1, shows: 1876, clicks: 134 },
+            { query: 'глубина скважины', pos: 12.3, shows: 1654, clicks: 45 },
+        ];
+        
+        // Render clients
+        function renderClients() {
+            const activeEl = document.getElementById('activeClients');
+            const presaleEl = document.getElementById('presaleClients');
+            
+            activeEl.innerHTML = clients.active.map(c => `
+                <div class="client-card" onclick="selectClient('${c.id}')">
+                    <div class="client-card__header">
+                        <div>
+                            <div class="client-card__name">${c.name}</div>
+                            <div class="client-card__domain">${c.domain || '—'}</div>
+                        </div>
+                        <span class="client-card__status active">Active</span>
+                    </div>
+                    <div class="client-card__stats">
+                        <div class="client-card__stat">
+                            <div class="client-card__stat-value">${c.total}</div>
+                            <div class="client-card__stat-label">запросов</div>
+                        </div>
+                        <div class="client-card__stat">
+                            <div class="client-card__stat-value success">${c.top3}</div>
+                            <div class="client-card__stat-label">ТОП-3</div>
+                        </div>
+                        <div class="client-card__stat">
+                            <div class="client-card__stat-value primary">${c.top10}</div>
+                            <div class="client-card__stat-label">ТОП-10</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            presaleEl.innerHTML = clients.presale.map(c => `
+                <div class="client-card">
+                    <div class="client-card__header">
+                        <div>
+                            <div class="client-card__name">${c.name}</div>
+                            <div class="client-card__domain">${c.domain || 'Нет домена'}</div>
+                        </div>
+                        <span class="client-card__status presale">Presale</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render positions table
+        function renderPositions() {
+            const table = document.getElementById('positionsTable');
+            table.innerHTML = positions.map((p, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${p.query}</td>
+                    <td><span class="pos-badge ${p.pos <= 3 ? 'top3' : p.pos <= 10 ? 'top10' : 'top30'}">${p.pos.toFixed(1)}</span></td>
+                    <td>${p.shows.toLocaleString()}</td>
+                    <td>${p.clicks.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // View switching
+        function showView(view) {
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('view-hidden'));
+            document.getElementById('view-' + view)?.classList.remove('view-hidden');
+            
+            document.querySelectorAll('.nav__item, .mobile-nav__item').forEach(el => el.classList.remove('active'));
+            event?.target?.classList.add('active');
+        }
+        
+        // Role switching
+        function switchRole(role) {
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const agencyNav = document.getElementById('agencyNav');
+            const clientSelector = document.getElementById('clientSelector');
+            
+            if (role === 'client') {
+                agencyNav.style.display = 'none';
+                clientSelector.style.display = 'none';
+            } else {
+                agencyNav.style.display = 'block';
+                clientSelector.style.display = 'block';
+            }
+        }
+        
+        // Select client
+        function selectClient(id) {
+            const client = clients.active.find(c => c.id === id);
+            if (client) {
+                document.getElementById('currentClientName').textContent = client.name;
+                document.getElementById('dashboardSubtitle').textContent = `${client.name} • ${client.domain}`;
+                showView('dashboard');
+            }
+        }
+        
+        // Init
+        renderClients();
+        renderPositions();
+    </script>
+</body>
+</html>
