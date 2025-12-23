@@ -1,4 +1,4 @@
-name: Add DNS Record v5
+name: Add DNS Record v6
 
 on:
   workflow_dispatch:
@@ -22,6 +22,40 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage();
             
+            // Функция закрытия всех попапов
+            async function closePopups() {
+              const selectors = [
+                "button:has-text(\"Закрыть\")",
+                "button:has-text(\"Понятно\")",
+                "[aria-label=\"Close\"]",
+                ".modal-close",
+                "button.close",
+                // NPS popup close button
+                "div:has-text(\"порекомендуете\") button",
+                "div:has-text(\"порекомендуете\") >> xpath=following-sibling::button",
+                "div:has-text(\"порекомендуете\") ~ button",
+                // Generic X buttons
+                "button:has-text(\"×\")",
+                "button:has-text(\"✕\")",
+              ];
+              
+              for (const sel of selectors) {
+                try {
+                  const btns = await page.$$(sel);
+                  for (const btn of btns) {
+                    await btn.click().catch(() => {});
+                    await page.waitForTimeout(200);
+                  }
+                } catch {}
+              }
+              
+              // Также пробуем закрыть по позиции - X обычно справа
+              try {
+                const closeX = await page.$("div[class*=\"nps\"] button, div[class*=\"survey\"] button, div[class*=\"feedback\"] button");
+                if (closeX) await closeX.click();
+              } catch {}
+            }
+            
             try {
               console.log("🔐 Логин...");
               await page.goto("https://hosting.timeweb.ru/login");
@@ -31,67 +65,99 @@ jobs:
               await page.click("button[type=\"submit\"]");
               await page.waitForTimeout(5000);
               
+              await closePopups();
+              
               console.log("🌐 DNS редактор...");
               await page.goto("https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro");
               await page.waitForTimeout(4000);
               
-              // Закрываем попапы
-              const closeButtons = await page.$$("button:has-text(\"Закрыть\"), button:has-text(\"Понятно\")");
-              for (const btn of closeButtons) { await btn.click().catch(() => {}); }
-              await page.waitForTimeout(500);
+              await closePopups();
+              
+              // Закрываем NPS попап по кнопке X (она справа от попапа)
+              try {
+                // Находим элемент с текстом про рекомендации и кликаем X рядом
+                const npsClose = await page.$("div:has-text(\"порекомендуете\") >> xpath=ancestor::div[1]//button");
+                if (npsClose) {
+                  await npsClose.click();
+                  console.log("✅ NPS попап закрыт");
+                }
+              } catch {}
+              
+              // Ещё раз пробуем закрыть все X
+              try {
+                const allX = await page.$$("button >> svg");
+                for (const x of allX) {
+                  const text = await x.textContent().catch(() => "");
+                  if (!text || text.trim() === "") {
+                    await x.click().catch(() => {});
+                  }
+                }
+              } catch {}
+              
+              await page.waitForTimeout(1000);
+              await page.screenshot({ path: "before_add.png", fullPage: true });
               
               console.log("➕ Добавить запись...");
               await page.click("text=Добавить запись");
               await page.waitForTimeout(2000);
               
+              await closePopups();
+              
               // Открываем dropdown типа
               console.log("📝 Открываю dropdown...");
-              await page.click("[class*=\"select\"] >> text=A");
-              await page.waitForTimeout(1000);
+              const typeDropdown = await page.$("div[class*=\"select\"]:has-text(\"A\")");
+              if (typeDropdown) {
+                await typeDropdown.click();
+                await page.waitForTimeout(1000);
+              }
               
-              // Кликаем на CNAME в открывшемся списке (4-й элемент)
-              console.log("📝 Кликаю на CNAME в списке...");
+              // Кликаем на CNAME
+              console.log("📝 Выбираю CNAME...");
               
-              // Ищем элемент списка с текстом CNAME внутри dropdown
-              const cnameOption = await page.$("div[class*=\"option\"]:has-text(\"CNAME\"), li:has-text(\"CNAME\"), [role=\"option\"]:has-text(\"CNAME\")");
-              if (cnameOption) {
-                await cnameOption.click();
-                console.log("✅ Кликнул на CNAME option");
-              } else {
-                // Пробуем по координатам - CNAME 4-й в списке
-                const dropdown = await page.$("[class*=\"dropdown\"], [class*=\"select-menu\"], [class*=\"options\"]");
-                if (dropdown) {
-                  const options = await dropdown.$$("div, li");
-                  console.log("Найдено options:", options.length);
-                  // CNAME обычно 4-й (A, AAAA, MX, CNAME)
-                  if (options.length >= 4) {
-                    await options[3].click();
-                    console.log("✅ Кликнул на 4-й элемент");
-                  }
+              // Находим все div с текстом CNAME и кликаем на тот который в dropdown
+              const cnameElements = await page.$$("div:text-is(\"CNAME\")");
+              console.log("Найдено CNAME элементов:", cnameElements.length);
+              
+              // Берём первый который видимый и в dropdown
+              for (const el of cnameElements) {
+                const isVisible = await el.isVisible();
+                if (isVisible) {
+                  await el.click();
+                  console.log("✅ Кликнул на CNAME");
+                  break;
                 }
               }
               
               await page.waitForTimeout(1500);
               await page.screenshot({ path: "after_cname.png", fullPage: true });
               
-              // Проверяем что CNAME выбран
-              const typeText = await page.$eval("[class*=\"select\"]", el => el.textContent).catch(() => "");
-              console.log("Текущий тип:", typeText);
-              
               // Заполняем поля
-              console.log("✏️ Заполняю Хост: portal");
+              console.log("✏️ Заполняю поля...");
               
-              const inputs = await page.$$("div[class*=\"modal\"] input, [role=\"dialog\"] input");
-              console.log("Найдено inputs в модале:", inputs.length);
+              // Все input в форме
+              const allInputs = await page.$$("input:visible");
+              console.log("Видимых inputs:", allInputs.length);
               
-              // Первый input - хост
-              if (inputs.length > 0) {
-                await inputs[0].fill("portal");
-              }
+              // Ищем пустые inputs
+              let hostFilled = false;
+              let valueFilled = false;
               
-              // Второй input - значение (для CNAME это должно быть "Значение")
-              if (inputs.length > 1) {
-                await inputs[1].fill("cname.vercel-dns.com");
+              for (const input of allInputs) {
+                const val = await input.inputValue();
+                const type = await input.getAttribute("type");
+                
+                if (val === "" && type !== "password" && type !== "hidden") {
+                  if (!hostFilled) {
+                    await input.fill("portal");
+                    hostFilled = true;
+                    console.log("✅ Хост: portal");
+                  } else if (!valueFilled) {
+                    await input.fill("cname.vercel-dns.com");
+                    valueFilled = true;
+                    console.log("✅ Значение: cname.vercel-dns.com");
+                    break;
+                  }
+                }
               }
               
               await page.screenshot({ path: "form_filled.png", fullPage: true });
