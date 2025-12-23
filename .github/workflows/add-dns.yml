@@ -1,4 +1,4 @@
-name: Add DNS Record
+name: Add DNS Record v2
 
 on:
   workflow_dispatch:
@@ -23,65 +23,84 @@ jobs:
             const page = await browser.newPage();
             
             try {
+              // Логин
               console.log("🔐 Логин в Timeweb...");
               await page.goto("https://hosting.timeweb.ru/login");
-              await page.waitForTimeout(2000);
-              
-              // Заполняем форму
-              await page.fill('input[name="username"], input[name="login"], input[type="text"]', "cp02586");
-              await page.fill('input[name="password"], input[type="password"]', "6CNgRdxX222");
-              await page.click('button[type="submit"]');
-              await page.waitForTimeout(5000);
-              
-              console.log("📍 Страница:", page.url());
-              
-              // Закрываем попапы
-              const closeBtns = await page.$$('button:has-text("Закрыть"), button:has-text("Понятно"), .modal-close');
-              for (const btn of closeBtns) {
-                try { await btn.click(); } catch {}
-              }
-              await page.waitForTimeout(1000);
-              
-              // Идём в DNS редактор
-              console.log("🌐 DNS редактор...");
-              await page.goto("https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro");
               await page.waitForTimeout(3000);
               
-              // Закрываем попапы снова
-              const closeBtns2 = await page.$$('button:has-text("Закрыть"), button:has-text("Понятно")');
-              for (const btn of closeBtns2) {
-                try { await btn.click(); } catch {}
-              }
+              // Заполняем форму логина
+              await page.fill("input[type=\"text\"]", "cp02586");
+              await page.fill("input[type=\"password\"]", "6CNgRdxX222");
+              await page.click("button[type=\"submit\"]");
+              await page.waitForTimeout(5000);
+              
+              console.log("📍 URL после логина:", page.url());
+              
+              // Идём в DNS
+              console.log("🌐 Открываю DNS редактор...");
+              await page.goto("https://hosting.timeweb.ru/domains/settings/dns-editor?fqdn=artvision.pro");
+              await page.waitForTimeout(4000);
+              
+              // Закрываем попапы
+              try {
+                const closeButtons = await page.$$("button:has-text(\"Закрыть\"), button:has-text(\"Понятно\"), .modal__close, [aria-label=\"Close\"]");
+                for (const btn of closeButtons) {
+                  await btn.click().catch(() => {});
+                  await page.waitForTimeout(300);
+                }
+              } catch {}
               
               // Проверяем есть ли уже portal
               const html = await page.content();
-              if (html.includes("portal") && html.includes("cname.vercel")) {
+              if (html.includes("portal.artvision.pro")) {
                 console.log("✅ Запись portal уже существует!");
+                await page.screenshot({ path: "already_exists.png", fullPage: true });
                 await browser.close();
                 return;
               }
               
-              // Нажимаем "Добавить запись"
-              console.log("➕ Добавляю запись...");
-              await page.click('text=Добавить запись, button:has-text("Добавить")');
+              // Нажимаем "+ Добавить запись"
+              console.log("➕ Нажимаю Добавить запись...");
+              await page.click("text=Добавить запись");
               await page.waitForTimeout(2000);
               
-              // Выбираем CNAME
-              await page.click('text=CNAME');
-              await page.waitForTimeout(500);
+              // Скриншот формы
+              await page.screenshot({ path: "form_opened.png", fullPage: true });
+              
+              // Выбираем тип CNAME (кликаем на вкладку или селект)
+              console.log("📝 Выбираю тип CNAME...");
+              const cnameTab = await page.$("text=CNAME");
+              if (cnameTab) {
+                await cnameTab.click();
+                await page.waitForTimeout(500);
+              }
               
               // Заполняем поля
-              await page.fill('input[placeholder*="хост"], input[name*="host"], input:near(:text("Хост"))', "portal");
-              await page.fill('input[placeholder*="значение"], input[name*="value"], input:near(:text("Значение"))', "cname.vercel-dns.com");
+              console.log("✏️ Заполняю поля...");
+              
+              // Ищем инпуты в форме
+              const inputs = await page.$$("input[type=\"text\"]");
+              console.log("Найдено инпутов:", inputs.length);
+              
+              // Первый инпут обычно хост, второй - значение
+              if (inputs.length >= 2) {
+                await inputs[0].fill("portal");
+                await inputs[1].fill("cname.vercel-dns.com");
+              } else {
+                // Пробуем по placeholder
+                await page.fill("input[placeholder*=\"хост\"], input[placeholder*=\"Хост\"], input[name*=\"host\"]", "portal");
+                await page.fill("input[placeholder*=\"знач\"], input[placeholder*=\"Знач\"], input[name*=\"value\"]", "cname.vercel-dns.com");
+              }
+              
+              await page.screenshot({ path: "form_filled.png", fullPage: true });
               
               // Сохраняем
-              await page.click('button:has-text("Сохранить"), button[type="submit"]');
+              console.log("💾 Сохраняю...");
+              await page.click("button:has-text(\"Сохранить\"), button:has-text(\"Добавить\"), button[type=\"submit\"]");
               await page.waitForTimeout(3000);
               
-              console.log("✅ DNS запись добавлена!");
-              
-              // Скриншот
-              await page.screenshot({ path: "dns_result.png", fullPage: true });
+              await page.screenshot({ path: "result.png", fullPage: true });
+              console.log("✅ Готово!");
               
             } catch (e) {
               console.log("❌ Ошибка:", e.message);
@@ -94,10 +113,10 @@ jobs:
           
           node add_dns.js
           
-      - name: Upload screenshot
+      - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: screenshots
+          name: dns-screenshots
           path: "*.png"
 
