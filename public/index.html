@@ -2,1100 +2,1009 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Artvision Portal</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Artvision Portal — Клиентский кабинет</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366F1;
-            --primary-light: #818CF8;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --bg-dark: #0F172A;
-            --bg-card: #1E293B;
-            --bg-hover: #334155;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border: #334155;
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2332;
+            --bg-card-hover: #222d3f;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            
+            --border-color: #1e293b;
+            --border-light: #334155;
+            
+            --gradient-blue: linear-gradient(135deg, #3b82f6, #06b6d4);
+            --gradient-green: linear-gradient(135deg, #10b981, #06b6d4);
+            
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-glow: 0 0 30px rgba(59,130,246,0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --sidebar-width: 280px;
+            --header-height: 64px;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Manrope', -apple-system, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
         
-        /* ===== LAYOUT ===== */
-        .app {
+        /* === MOBILE HEADER === */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        
+        .mobile-logo {
             display: flex;
-            min-height: 100vh;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
         }
         
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
+        .mobile-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .menu-btn {
+            width: 44px;
+            height: 44px;
             background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* === SIDEBAR === */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
+            z-index: 200;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 0 8px 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
         }
         
         .logo {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 32px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            text-decoration: none;
         }
         
-        .logo__icon {
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-blue);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+        
+        .nav-section { margin-bottom: 24px; }
+        
+        .nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        .nav-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+        
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent-red);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+        }
+        
+        .user-avatar {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, var(--primary), #8B5CF6);
-            border-radius: 10px;
+            background: var(--gradient-green);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 0.9rem;
         }
         
-        .logo__text {
-            font-size: 18px;
-            font-weight: 600;
+        .user-name { font-weight: 600; font-size: 0.9rem; }
+        .user-role { font-size: 0.75rem; color: var(--text-muted); }
+        
+        /* === OVERLAY === */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
-        /* User Role Switcher */
-        .role-switcher {
-            background: var(--bg-dark);
-            border-radius: 10px;
-            padding: 4px;
-            display: flex;
-            margin-bottom: 24px;
+        .overlay.active {
+            display: block;
+            opacity: 1;
         }
         
-        .role-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all .2s;
-        }
-        
-        .role-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* Navigation */
-        .nav__section {
-            margin-bottom: 24px;
-        }
-        
-        .nav__title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            padding-left: 12px;
-        }
-        
-        .nav__item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            transition: all .15s;
-            cursor: pointer;
-        }
-        
-        .nav__item:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        
-        .nav__item.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: var(--primary-light);
-        }
-        
-        .nav__icon { font-size: 18px; width: 24px; text-align: center; }
-        
-        .nav__badge {
-            margin-left: auto;
-            background: var(--primary);
-            color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-        
-        /* Client Selector (Agency Mode) */
-        .client-selector {
-            background: var(--bg-dark);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 24px;
-        }
-        
-        .client-selector__label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-        
-        .client-selector__current {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-        
-        .client-selector__name {
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .client-selector__status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-        }
-        
-        /* ===== MAIN CONTENT ===== */
+        /* === MAIN === */
         .main {
-            flex: 1;
-            margin-left: 260px;
-            padding: 24px;
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+            min-height: 100vh;
         }
         
-        .header {
+        .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            gap: 16px;
         }
         
-        .header__title {
-            font-size: 24px;
-            font-weight: 600;
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 6px;
         }
         
-        .header__subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-top: 4px;
-        }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.95rem; }
         
-        .header__actions {
-            display: flex;
-            gap: 12px;
-        }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         
         .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
             border: none;
-            transition: all .2s;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
         
-        .btn--primary {
-            background: var(--primary);
+        .btn-primary {
+            background: var(--gradient-blue);
             color: white;
         }
         
-        .btn--primary:hover {
-            background: var(--primary-light);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
         
-        .btn--ghost {
-            background: transparent;
-            border: 1px solid var(--border);
+        .btn-secondary {
+            background: var(--bg-card);
             color: var(--text-primary);
+            border: 1px solid var(--border-light);
         }
         
-        /* Stats Grid */
+        .btn-secondary:hover { background: var(--bg-card-hover); }
+        
+        /* === STATS === */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
         }
         
         .stat-card {
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             padding: 20px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
         
-        .stat-card__label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
+        .stat-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
         }
         
-        .stat-card__value {
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .stat-card__trend {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 13px;
-            margin-top: 8px;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-        
-        .stat-card__trend.up {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-        
-        .stat-card__trend.down {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-        }
-        
-        /* Charts Section */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .chart-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-        }
-        
-        .chart-card__header {
+        .stat-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
         
-        .chart-card__title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        /* Bar Chart (CSS only) */
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .bar-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .bar-row__label {
-            width: 60px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        
-        .bar-row__track {
-            flex: 1;
-            height: 28px;
-            background: var(--bg-dark);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        
-        .bar-row__fill {
-            height: 100%;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: white;
-            transition: width .5s ease;
-        }
-        
-        .bar-row__fill.top3 { background: var(--success); }
-        .bar-row__fill.top10 { background: #3B82F6; }
-        .bar-row__fill.top20 { background: var(--warning); }
-        .bar-row__fill.top30 { background: #F97316; }
-        .bar-row__fill.other { background: #64748B; }
-        
-        /* Donut Chart */
-        .donut-container {
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .stat-icon.blue { background: rgba(59,130,246,0.15); }
+        .stat-icon.green { background: rgba(16,185,129,0.15); }
+        .stat-icon.amber { background: rgba(245,158,11,0.15); }
+        .stat-icon.purple { background: rgba(139,92,246,0.15); }
+        
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .stat-trend.up { color: var(--accent-green); }
+        .stat-trend.down { color: var(--accent-red); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label { color: var(--text-secondary); font-size: 0.85rem; }
+        
+        /* === CONTENT GRID === */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
             gap: 24px;
         }
         
-        .donut {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            position: relative;
-        }
-        
-        .donut__center {
-            position: absolute;
-            inset: 25px;
+        .section {
             background: var(--bg-card);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .donut__value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary-light);
-        }
-        
-        .donut__label {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-        
-        .legend {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .legend__item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-        }
-        
-        .legend__dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        
-        /* Table */
-        .table-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
             overflow: hidden;
         }
         
-        .table-card__header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .table-card__title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            padding: 12px 20px;
-            text-align: left;
-            font-size: 14px;
-        }
-        
-        th {
-            background: var(--bg-dark);
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        tr {
-            border-bottom: 1px solid var(--border);
-        }
-        
-        tr:hover {
-            background: var(--bg-hover);
-        }
-        
-        .pos-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-        }
-        
-        .pos-badge.top3 { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-        .pos-badge.top10 { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
-        .pos-badge.top30 { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-        
-        /* Upsale Section */
-        .upsale-section {
-            margin-top: 24px;
-        }
-        
-        .upsale-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        
-        .upsale-card {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-        }
-        
-        .upsale-card__icon {
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-        
-        .upsale-card__title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .upsale-card__text {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            line-height: 1.5;
-        }
-        
-        .upsale-card__impact {
-            font-size: 13px;
-            color: var(--success);
-            margin-bottom: 16px;
-        }
-        
-        .upsale-card__btn {
-            display: inline-block;
-            padding: 8px 16px;
-            background: var(--primary);
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        
-        /* Clients List (Agency Mode) */
-        .clients-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
-        }
-        
-        .client-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: all .2s;
-        }
-        
-        .client-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-        
-        .client-card__header {
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
+            align-items: center;
+            gap: 10px;
         }
         
-        .client-card__name {
-            font-size: 16px;
-            font-weight: 600;
+        .section-body { padding: 20px 24px; }
+        
+        /* === DOCUMENTS === */
+        .doc-list { display: flex; flex-direction: column; gap: 12px; }
+        
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
         }
         
-        .client-card__domain {
-            font-size: 13px;
+        .doc-item:hover {
+            border-color: var(--border-light);
+            background: var(--bg-card-hover);
+        }
+        
+        .doc-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(59,130,246,0.1);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .doc-info { flex: 1; min-width: 0; }
+        .doc-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+        .doc-meta { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .doc-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-top: 2px;
+            white-space: nowrap;
         }
         
-        .client-card__status {
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .status-paid { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+        .status-pending { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+        .status-overdue { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+        .status-ready { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+        
+        .icon-btn:hover {
+            background: var(--bg-card);
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        
+        /* === UPSALE === */
+        .upsale-card {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border: 1px solid var(--accent-blue);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upsale-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .upsale-tag {
+            display: inline-block;
+            background: var(--gradient-blue);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
             padding: 4px 10px;
             border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
+            margin-bottom: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
-        .client-card__status.active {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
+        .upsale-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+        .upsale-text { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px; }
         
-        .client-card__status.presale {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--warning);
-        }
-        
-        .client-card__stats {
+        .upsale-metric {
             display: flex;
-            gap: 16px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 16px;
         }
         
-        .client-card__stat {
-            text-align: center;
-            flex: 1;
+        .upsale-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-green);
         }
         
-        .client-card__stat-value {
-            font-size: 18px;
-            font-weight: 700;
+        .upsale-label { color: var(--text-secondary); font-size: 0.9rem; }
+        
+        /* === POSITIONS === */
+        .position-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .client-card__stat-value.success { color: var(--success); }
-        .client-card__stat-value.primary { color: var(--primary-light); }
+        .position-item:last-child { border-bottom: none; }
         
-        .client-card__stat-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 2px;
+        .position-keyword { font-weight: 500; margin-bottom: 4px; font-size: 0.95rem; }
+        .position-freq { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .position-rank { display: flex; align-items: center; gap: 8px; }
+        
+        .rank-number {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
         }
         
-        /* Mobile */
+        .rank-number.top3 { color: var(--accent-green); }
+        .rank-number.top10 { color: var(--accent-blue); }
+        .rank-number.top30 { color: var(--accent-amber); }
+        
+        .rank-change { font-size: 0.8rem; font-weight: 600; }
+        .rank-change.up { color: var(--accent-green); }
+        .rank-change.down { color: var(--accent-red); }
+        
+        /* === RESPONSIVE === */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+        
         @media (max-width: 768px) {
+            .mobile-header { display: flex; }
+            
             .sidebar {
-                display: none;
+                transform: translateX(-100%);
+                width: 85%;
+                max-width: 320px;
             }
+            
+            .sidebar.open { transform: translateX(0); }
             
             .main {
                 margin-left: 0;
+                padding: 16px;
+                padding-top: calc(var(--header-height) + 16px);
             }
             
-            .charts-grid {
-                grid-template-columns: 1fr;
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
             }
             
-            .mobile-nav {
-                display: flex !important;
+            .page-title { font-size: 1.4rem; }
+            
+            .header-actions {
+                width: 100%;
+            }
+            
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px 16px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 1.6rem; }
+            .stat-icon { width: 38px; height: 38px; font-size: 1.1rem; }
+            
+            .section-body { padding: 16px; }
+            
+            .doc-item {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .doc-info { width: calc(100% - 60px); }
+            
+            .doc-amount,
+            .status-badge,
+            .doc-actions {
+                width: auto;
+            }
+            
+            .doc-row-bottom {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 12px;
+                border-top: 1px solid var(--border-color);
+                margin-top: 4px;
             }
         }
         
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            padding: 8px 16px;
-            justify-content: space-around;
-            z-index: 100;
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+            
+            .stat-card {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            
+            .stat-header { margin-bottom: 0; }
+            .stat-content { flex: 1; }
+            .stat-trend { position: absolute; top: 16px; right: 16px; }
+            .stat-card { position: relative; }
+            
+            .header-actions { flex-direction: column; }
+            .header-actions .btn { width: 100%; }
+            
+            .position-keyword { font-size: 0.9rem; }
+            .rank-number { font-size: 1.2rem; }
         }
         
-        .mobile-nav__item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 10px;
-            padding: 8px;
+        /* === ANIMATIONS === */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .mobile-nav__item.active {
-            color: var(--primary-light);
+        .stat-card, .section, .upsale-card {
+            animation: fadeInUp 0.5s ease both;
         }
         
-        .mobile-nav__icon {
-            font-size: 20px;
-        }
-        
-        /* View Toggles */
-        .view-hidden { display: none !important; }
-        
-        /* Telegram Mini App adjustments */
-        .tg-mode .sidebar { display: none; }
-        .tg-mode .main { margin-left: 0; padding: 16px; }
-        .tg-mode .mobile-nav { display: flex; }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-card:nth-child(4) { animation-delay: 0.2s; }
     </style>
 </head>
 <body>
-    <div class="app" id="app">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo__icon">A</div>
-                <span class="logo__text">Artvision</span>
-            </div>
-            
-            <!-- Role Switcher -->
-            <div class="role-switcher">
-                <button class="role-btn active" onclick="switchRole('agency')">Агентство</button>
-                <button class="role-btn" onclick="switchRole('client')">Клиент</button>
-            </div>
-            
-            <!-- Client Selector (Agency Mode) -->
-            <div class="client-selector" id="clientSelector">
-                <div class="client-selector__label">Текущий клиент</div>
-                <div class="client-selector__current" onclick="showClientList()">
-                    <span class="client-selector__name" id="currentClientName">Бурение скважин</span>
-                    <span class="client-selector__status"></span>
-                </div>
-            </div>
-            
-            <!-- Navigation -->
-            <nav class="nav">
-                <div class="nav__section">
-                    <div class="nav__title">Основное</div>
-                    <a class="nav__item active" onclick="showView('dashboard')">
-                        <span class="nav__icon">📊</span>
-                        Дашборд
-                    </a>
-                    <a class="nav__item" onclick="showView('positions')">
-                        <span class="nav__icon">📈</span>
-                        Позиции
-                    </a>
-                    <a class="nav__item" onclick="showView('reports')">
-                        <span class="nav__icon">📄</span>
-                        Отчёты
-                        <span class="nav__badge">3</span>
-                    </a>
-                    <a class="nav__item" onclick="showView('documents')">
-                        <span class="nav__icon">📁</span>
-                        Документы
-                    </a>
-                </div>
-                
-                <div class="nav__section" id="agencyNav">
-                    <div class="nav__title">Агентство</div>
-                    <a class="nav__item" onclick="showView('clients')">
-                        <span class="nav__icon">👥</span>
-                        Все клиенты
-                        <span class="nav__badge">9</span>
-                    </a>
-                    <a class="nav__item" onclick="showView('tasks')">
-                        <span class="nav__icon">✅</span>
-                        Задачи
-                    </a>
-                    <a class="nav__item" onclick="showView('finances')">
-                        <span class="nav__icon">💰</span>
-                        Финансы
-                    </a>
-                </div>
-                
-                <div class="nav__section">
-                    <div class="nav__title">Telegram</div>
-                    <a class="nav__item" href="https://t.me/avportalbot" target="_blank">
-                        <span class="nav__icon">🤖</span>
-                        Подключить бота
-                    </a>
-                </div>
-            </nav>
-        </aside>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="mobile-logo">
+            <div class="mobile-logo-icon">🚀</div>
+            <span>Artvision</span>
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()" aria-label="Меню">☰</button>
+    </header>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="logo">
+                <div class="logo-icon">🚀</div>
+                <span class="logo-text">Artvision</span>
+            </a>
+        </div>
         
-        <!-- Main Content -->
-        <main class="main">
-            <!-- Dashboard View -->
-            <div id="view-dashboard">
-                <div class="header">
-                    <div>
-                        <h1 class="header__title">Дашборд</h1>
-                        <p class="header__subtitle" id="dashboardSubtitle">Бурение скважин • burenie-skv.ru</p>
-                    </div>
-                    <div class="header__actions">
-                        <button class="btn btn--ghost">📥 Экспорт</button>
-                        <button class="btn btn--primary">📊 Новый отчёт</button>
-                    </div>
-                </div>
-                
-                <!-- Stats -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card__label">Запросов в ТОП-50</div>
-                        <div class="stat-card__value">1,955</div>
-                        <div class="stat-card__trend up">↑ 12% за месяц</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card__label">ТОП-3</div>
-                        <div class="stat-card__value" style="color: var(--success)">14</div>
-                        <div class="stat-card__trend up">↑ 3 новых</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card__label">ТОП-10</div>
-                        <div class="stat-card__value" style="color: #3B82F6">28</div>
-                        <div class="stat-card__trend up">↑ 5 новых</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card__label">Показы</div>
-                        <div class="stat-card__value">33,012</div>
-                        <div class="stat-card__trend up">↑ 18%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card__label">Клики</div>
-                        <div class="stat-card__value" style="color: var(--success)">1,847</div>
-                        <div class="stat-card__trend up">↑ 23%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card__label">SEO Health</div>
-                        <div class="stat-card__value" style="color: var(--success)">92%</div>
-                        <div class="stat-card__trend up">🟢 Отлично</div>
-                    </div>
-                </div>
-                
-                <!-- Charts -->
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <div class="chart-card__header">
-                            <h3 class="chart-card__title">Распределение позиций</h3>
-                        </div>
-                        <div class="bar-chart">
-                            <div class="bar-row">
-                                <span class="bar-row__label">ТОП-3</span>
-                                <div class="bar-row__track">
-                                    <div class="bar-row__fill top3" style="width: 70%">14</div>
-                                </div>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-row__label">4–10</span>
-                                <div class="bar-row__track">
-                                    <div class="bar-row__fill top10" style="width: 70%">14</div>
-                                </div>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-row__label">11–20</span>
-                                <div class="bar-row__track">
-                                    <div class="bar-row__fill top20" style="width: 100%">35</div>
-                                </div>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-row__label">21–30</span>
-                                <div class="bar-row__track">
-                                    <div class="bar-row__fill top30" style="width: 63%">22</div>
-                                </div>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-row__label">30+</span>
-                                <div class="bar-row__track">
-                                    <div class="bar-row__fill other" style="width: 43%">15</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-card">
-                        <div class="chart-card__header">
-                            <h3 class="chart-card__title">В ТОП-10</h3>
-                        </div>
-                        <div class="donut-container">
-                            <div class="donut" style="background: conic-gradient(var(--success) 0deg 50deg, #3B82F6 50deg 100deg, var(--warning) 100deg 205deg, #64748B 205deg 360deg)">
-                                <div class="donut__center">
-                                    <span class="donut__value">28</span>
-                                    <span class="donut__label">ТОП-10</span>
-                                </div>
-                            </div>
-                            <div class="legend">
-                                <div class="legend__item">
-                                    <span class="legend__dot" style="background: var(--success)"></span>
-                                    ТОП-3: 14
-                                </div>
-                                <div class="legend__item">
-                                    <span class="legend__dot" style="background: #3B82F6"></span>
-                                    4–10: 14
-                                </div>
-                                <div class="legend__item">
-                                    <span class="legend__dot" style="background: var(--warning)"></span>
-                                    11–30: 57
-                                </div>
-                                <div class="legend__item">
-                                    <span class="legend__dot" style="background: #64748B"></span>
-                                    30+: 15
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Upsale -->
-                <div class="upsale-section">
-                    <h3 style="margin-bottom: 16px; font-size: 18px;">💡 Рекомендации</h3>
-                    <div class="upsale-grid">
-                        <div class="upsale-card">
-                            <div class="upsale-card__icon">📝</div>
-                            <h4 class="upsale-card__title">12 запросов на пороге ТОП-10</h4>
-                            <p class="upsale-card__text">Добавьте контент по этим запросам — высокий шанс попасть в ТОП</p>
-                            <div class="upsale-card__impact">📈 Прогноз: +40% трафика</div>
-                            <a href="#" class="upsale-card__btn">Подробнее</a>
-                        </div>
-                        <div class="upsale-card">
-                            <div class="upsale-card__icon">🔗</div>
-                            <h4 class="upsale-card__title">Нужен аудит ссылочной массы</h4>
-                            <p class="upsale-card__text">Конкуренты наращивают ссылки, нужно догонять</p>
-                            <div class="upsale-card__impact">🛡️ Защита позиций</div>
-                            <a href="#" class="upsale-card__btn">Обсудить</a>
-                        </div>
-                    </div>
-                </div>
+        <nav>
+            <div class="nav-section">
+                <div class="nav-title">Основное</div>
+                <a href="#" class="nav-item active" onclick="closeMobileMenu()">
+                    <span class="nav-icon">📊</span>
+                    <span>Дашборд</span>
+                </a>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">📈</span>
+                    <span>Позиции</span>
+                </a>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">📄</span>
+                    <span>Отчёты</span>
+                </a>
             </div>
             
-            <!-- Clients View (Agency) -->
-            <div id="view-clients" class="view-hidden">
-                <div class="header">
-                    <div>
-                        <h1 class="header__title">Все клиенты</h1>
-                        <p class="header__subtitle">9 активных • 11 presale</p>
-                    </div>
-                </div>
-                
-                <h3 style="margin: 24px 0 16px; color: var(--success);">🟢 Активные</h3>
-                <div class="clients-grid" id="activeClients"></div>
-                
-                <h3 style="margin: 32px 0 16px; color: var(--warning);">🟡 Presale</h3>
-                <div class="clients-grid" id="presaleClients"></div>
+            <div class="nav-section">
+                <div class="nav-title">Документы</div>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">📑</span>
+                    <span>Счета</span>
+                    <span class="nav-badge">2</span>
+                </a>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">✅</span>
+                    <span>Акты</span>
+                </a>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">📁</span>
+                    <span>Договоры</span>
+                </a>
             </div>
             
-            <!-- Positions View -->
-            <div id="view-positions" class="view-hidden">
-                <div class="header">
-                    <div>
-                        <h1 class="header__title">Позиции</h1>
-                        <p class="header__subtitle">Топ запросов по показам</p>
-                    </div>
-                </div>
-                
-                <div class="table-card">
-                    <div class="table-card__header">
-                        <h3 class="table-card__title">Топ-20 запросов</h3>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Запрос</th>
-                                <th>Позиция</th>
-                                <th>Показы</th>
-                                <th>Клики</th>
-                            </tr>
-                        </thead>
-                        <tbody id="positionsTable"></tbody>
-                    </table>
-                </div>
+            <div class="nav-section">
+                <div class="nav-title">Поддержка</div>
+                <a href="https://t.me/artvision_support" class="nav-item" target="_blank">
+                    <span class="nav-icon">💬</span>
+                    <span>Telegram</span>
+                </a>
+                <a href="#" class="nav-item" onclick="closeMobileMenu()">
+                    <span class="nav-icon">❓</span>
+                    <span>Помощь</span>
+                </a>
             </div>
-        </main>
-        
-        <!-- Mobile Navigation -->
-        <nav class="mobile-nav">
-            <a class="mobile-nav__item active" onclick="showView('dashboard')">
-                <span class="mobile-nav__icon">📊</span>
-                Дашборд
-            </a>
-            <a class="mobile-nav__item" onclick="showView('positions')">
-                <span class="mobile-nav__icon">📈</span>
-                Позиции
-            </a>
-            <a class="mobile-nav__item" onclick="showView('reports')">
-                <span class="mobile-nav__icon">📄</span>
-                Отчёты
-            </a>
-            <a class="mobile-nav__item" onclick="showView('clients')">
-                <span class="mobile-nav__icon">👥</span>
-                Клиенты
-            </a>
         </nav>
-    </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">ТС</div>
+                <div>
+                    <div class="user-name">Творим Совершенство</div>
+                    <div class="user-role">Клиент</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Main -->
+    <main class="main">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Добро пожаловать! 👋</h1>
+                <p class="page-subtitle">Творим Совершенство — декабрь 2025</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary">
+                    <span>📥</span> Скачать отчёт
+                </button>
+                <a href="https://t.me/artvision_support" class="btn btn-primary" target="_blank">
+                    <span>💬</span> Связаться
+                </a>
+            </div>
+        </header>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon blue">🎯</div>
+                    <div class="stat-trend up">↑ 12%</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">47</div>
+                    <div class="stat-label">Запросов в ТОП-10</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon green">👥</div>
+                    <div class="stat-trend up">↑ 23%</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">2,847</div>
+                    <div class="stat-label">Визитов за месяц</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon amber">📞</div>
+                    <div class="stat-trend up">↑ 8%</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">34</div>
+                    <div class="stat-label">Заявок с сайта</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon purple">💰</div>
+                    <div class="stat-trend">→</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">85K</div>
+                    <div class="stat-label">Бюджет / мес</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content-grid">
+            <!-- Documents -->
+            <section class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>📄</span> Документы
+                    </h2>
+                    <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+                        Все документы
+                    </button>
+                </div>
+                <div class="section-body">
+                    <div class="doc-list">
+                        <!-- Отчёт -->
+                        <div class="doc-item">
+                            <div class="doc-icon">📊</div>
+                            <div class="doc-info">
+                                <div class="doc-title">SEO-отчёт декабрь 2025</div>
+                                <div class="doc-meta">Ежемесячный отчёт • 20 дек</div>
+                            </div>
+                            <span class="status-badge status-ready">✓ Готов</span>
+                            <div class="doc-actions">
+                                <button class="icon-btn" title="Скачать">📥</button>
+                                <button class="icon-btn" title="Открыть">👁</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Счёт ожидает -->
+                        <div class="doc-item">
+                            <div class="doc-icon">📑</div>
+                            <div class="doc-info">
+                                <div class="doc-title">Счёт №127</div>
+                                <div class="doc-meta">Январь 2026 • 23 дек</div>
+                            </div>
+                            <div class="doc-amount">85 000 ₽</div>
+                            <span class="status-badge status-pending">⏳ Ожидает</span>
+                            <div class="doc-actions">
+                                <button class="icon-btn" title="Скачать">📥</button>
+                                <button class="icon-btn" title="Оплатить">💳</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Акт оплачен -->
+                        <div class="doc-item">
+                            <div class="doc-icon">✅</div>
+                            <div class="doc-info">
+                                <div class="doc-title">Акт №126</div>
+                                <div class="doc-meta">Декабрь 2025 • 15 дек</div>
+                            </div>
+                            <div class="doc-amount">85 000 ₽</div>
+                            <span class="status-badge status-paid">✓ Оплачен</span>
+                            <div class="doc-actions">
+                                <button class="icon-btn" title="Скачать">📥</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Счёт просрочен -->
+                        <div class="doc-item">
+                            <div class="doc-icon">📑</div>
+                            <div class="doc-info">
+                                <div class="doc-title">Счёт №125</div>
+                                <div class="doc-meta">Ноябрь 2025 • 1 ноя</div>
+                            </div>
+                            <div class="doc-amount">85 000 ₽</div>
+                            <span class="status-badge status-overdue">⚠ Просрочен</span>
+                            <div class="doc-actions">
+                                <button class="icon-btn" title="Скачать">📥</button>
+                                <button class="icon-btn" title="Оплатить">💳</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Column -->
+            <div>
+                <!-- Upsale -->
+                <div class="upsale-card">
+                    <div class="upsale-tag">💡 Рекомендация</div>
+                    <h3 class="upsale-title">12 запросов на пороге ТОП-10</h3>
+                    <p class="upsale-text">Добавьте 4 статьи в блог — прогноз роста трафика:</p>
+                    <div class="upsale-metric">
+                        <span class="upsale-number">+40%</span>
+                        <span class="upsale-label">трафика за 2 месяца</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;">
+                        Узнать подробнее →
+                    </button>
+                </div>
+                
+                <!-- Positions -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <span>🎯</span> ТОП запросы
+                        </h2>
+                    </div>
+                    <div class="section-body" style="padding-top: 12px;">
+                        <div class="position-item">
+                            <div>
+                                <div class="position-keyword">стоматология спб</div>
+                                <div class="position-freq">2 400 / мес</div>
+                            </div>
+                            <div class="position-rank">
+                                <span class="rank-number top3">3</span>
+                                <span class="rank-change up">↑2</span>
+                            </div>
+                        </div>
+                        <div class="position-item">
+                            <div>
+                                <div class="position-keyword">имплантация зубов цена</div>
+                                <div class="position-freq">1 800 / мес</div>
+                            </div>
+                            <div class="position-rank">
+                                <span class="rank-number top10">7</span>
+                                <span class="rank-change up">↑3</span>
+                            </div>
+                        </div>
+                        <div class="position-item">
+                            <div>
+                                <div class="position-keyword">виниры спб</div>
+                                <div class="position-freq">1 200 / мес</div>
+                            </div>
+                            <div class="position-rank">
+                                <span class="rank-number top3">2</span>
+                                <span class="rank-change up">↑1</span>
+                            </div>
+                        </div>
+                        <div class="position-item">
+                            <div>
+                                <div class="position-keyword">отбеливание зубов</div>
+                                <div class="position-freq">980 / мес</div>
+                            </div>
+                            <div class="position-rank">
+                                <span class="rank-number top10">9</span>
+                                <span class="rank-change down">↓1</span>
+                            </div>
+                        </div>
+                        <div class="position-item">
+                            <div>
+                                <div class="position-keyword">лечение кариеса</div>
+                                <div class="position-freq">850 / мес</div>
+                            </div>
+                            <div class="position-rank">
+                                <span class="rank-number top30">15</span>
+                                <span class="rank-change up">↑5</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
     
     <script>
-        // Check Telegram Mini App
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            document.body.classList.add('tg-mode');
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
         }
         
-        // Data
-        const clients = {
-            active: [
-                { id: 'burenie', name: 'Бурение скважин', domain: 'burenie-skv.ru', total: 1955, top3: 14, top10: 28 },
-                { id: 'madwave', name: 'Mad Wave', domain: 'madwave.ru', total: 2503, top3: 4, top10: 20 },
-                { id: 'otido', name: 'Otido Group', domain: 'otido-group.ru', total: 1367, top3: 2, top10: 28 },
-                { id: 'vlpco', name: 'VLPCo', domain: 'vlpco.ru', total: 516, top3: 11, top10: 23 },
-                { id: 'extru', name: 'Extru Tech', domain: 'extru-tech-tpk.ru', total: 256, top3: 3, top10: 24 },
-                { id: 'tvorim', name: 'Творим Совершенство', domain: 'tvorimsovershenstvo.ru', total: 169, top3: 5, top10: 23 },
-                { id: 'ant', name: 'ANT Partners', domain: 'ant.partners', total: 88, top3: 8, top10: 26 },
-                { id: 'atribeaute', name: 'Atribeaute', domain: 'atribeaute.ru', total: 0, top3: 0, top10: 0 },
-                { id: 'geely', name: 'Geely A2Auto', domain: 'geely-a2auto.ru', total: 3, top3: 0, top10: 1 },
-            ],
-            presale: [
-                { id: 'bluebirds', name: 'Blue Birds', domain: null },
-                { id: 'baburov', name: 'Baburov', domain: null },
-                { id: 'avgaxle', name: 'AVG Axle', domain: null },
-                { id: 'escooter', name: 'Электросамокаты СПб', domain: null },
-            ]
-        };
-        
-        const positions = [
-            { query: 'бурение скважин спб', pos: 2.1, shows: 4521, clicks: 312 },
-            { query: 'скважина на воду цена', pos: 4.3, shows: 3892, clicks: 198 },
-            { query: 'бурение скважин ленинградская область', pos: 1.8, shows: 3245, clicks: 287 },
-            { query: 'артезианская скважина', pos: 5.2, shows: 2987, clicks: 156 },
-            { query: 'бурение скважин под ключ', pos: 3.4, shows: 2654, clicks: 201 },
-            { query: 'водоснабжение частного дома', pos: 8.1, shows: 2341, clicks: 89 },
-            { query: 'обустройство скважины', pos: 2.9, shows: 2156, clicks: 167 },
-            { query: 'скважина для дачи', pos: 6.7, shows: 1987, clicks: 78 },
-            { query: 'бурение скважин стоимость', pos: 4.1, shows: 1876, clicks: 134 },
-            { query: 'глубина скважины', pos: 12.3, shows: 1654, clicks: 45 },
-        ];
-        
-        // Render clients
-        function renderClients() {
-            const activeEl = document.getElementById('activeClients');
-            const presaleEl = document.getElementById('presaleClients');
-            
-            activeEl.innerHTML = clients.active.map(c => `
-                <div class="client-card" onclick="selectClient('${c.id}')">
-                    <div class="client-card__header">
-                        <div>
-                            <div class="client-card__name">${c.name}</div>
-                            <div class="client-card__domain">${c.domain || '—'}</div>
-                        </div>
-                        <span class="client-card__status active">Active</span>
-                    </div>
-                    <div class="client-card__stats">
-                        <div class="client-card__stat">
-                            <div class="client-card__stat-value">${c.total}</div>
-                            <div class="client-card__stat-label">запросов</div>
-                        </div>
-                        <div class="client-card__stat">
-                            <div class="client-card__stat-value success">${c.top3}</div>
-                            <div class="client-card__stat-label">ТОП-3</div>
-                        </div>
-                        <div class="client-card__stat">
-                            <div class="client-card__stat-value primary">${c.top10}</div>
-                            <div class="client-card__stat-label">ТОП-10</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            presaleEl.innerHTML = clients.presale.map(c => `
-                <div class="client-card">
-                    <div class="client-card__header">
-                        <div>
-                            <div class="client-card__name">${c.name}</div>
-                            <div class="client-card__domain">${c.domain || 'Нет домена'}</div>
-                        </div>
-                        <span class="client-card__status presale">Presale</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Render positions table
-        function renderPositions() {
-            const table = document.getElementById('positionsTable');
-            table.innerHTML = positions.map((p, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${p.query}</td>
-                    <td><span class="pos-badge ${p.pos <= 3 ? 'top3' : p.pos <= 10 ? 'top10' : 'top30'}">${p.pos.toFixed(1)}</span></td>
-                    <td>${p.shows.toLocaleString()}</td>
-                    <td>${p.clicks.toLocaleString()}</td>
-                </tr>
-            `).join('');
-        }
-        
-        // View switching
-        function showView(view) {
-            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('view-hidden'));
-            document.getElementById('view-' + view)?.classList.remove('view-hidden');
-            
-            document.querySelectorAll('.nav__item, .mobile-nav__item').forEach(el => el.classList.remove('active'));
-            event?.target?.classList.add('active');
-        }
-        
-        // Role switching
-        function switchRole(role) {
-            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            const agencyNav = document.getElementById('agencyNav');
-            const clientSelector = document.getElementById('clientSelector');
-            
-            if (role === 'client') {
-                agencyNav.style.display = 'none';
-                clientSelector.style.display = 'none';
-            } else {
-                agencyNav.style.display = 'block';
-                clientSelector.style.display = 'block';
+        function closeMobileMenu() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
             }
         }
         
-        // Select client
-        function selectClient(id) {
-            const client = clients.active.find(c => c.id === id);
-            if (client) {
-                document.getElementById('currentClientName').textContent = client.name;
-                document.getElementById('dashboardSubtitle').textContent = `${client.name} • ${client.domain}`;
-                showView('dashboard');
+        // Close menu on resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('overlay').classList.remove('active');
+                document.body.style.overflow = '';
             }
-        }
+        });
         
-        // Init
-        renderClients();
-        renderPositions();
+        // Escape key closes menu
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMobileMenu();
+        });
     </script>
 </body>
 </html>
