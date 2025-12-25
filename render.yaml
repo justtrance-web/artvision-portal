@@ -17,4 +17,4 @@ services:
       - key: ASANA_PROJECT
         value: "1212305892582815"
       - key: ADMIN_IDS
-        value: "161261652"
+        value: "161261562"
