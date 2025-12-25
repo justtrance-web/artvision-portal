@@ -44,8 +44,8 @@ ASANA_WORKSPACE = os.environ.get("ASANA_WORKSPACE", "860693669973770")
 ASANA_PROJECT = os.environ.get("ASANA_PROJECT", "1212305892582815")  # Задачи - Artvision
 
 # Админы (Telegram user IDs)
-ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "161261652").split(",") if x]
-# Кирилл: 161261652
+ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "161261562").split(",") if x]
+# Кирилл: 161261562
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
