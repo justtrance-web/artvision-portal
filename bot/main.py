@@ -34,7 +34,7 @@ from telegram.ext import (
 # ═══════════════════════════════════════════════════════════════
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8570860596:AAG8sAPiClGDCGCQi8SMltJFGW5sRUcJdns")
-WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://artvision-portal.vercel.app")
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://artvision-portal.vercel.app/webapp")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
@@ -654,3 +654,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
