@@ -593,57 +593,47 @@
       funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2V12L3 4z"/></svg>'
     };
 
-    // === WEBMASTER API ===
-    const WEBMASTER_TOKEN = 'y0__xDfh5o8GJTCPCDmgMTjFWHcPZSPYeLX-r6YqBOWv0rQZBsU';
-    const WEBMASTER_USER = '126256095';
+    // === API CONFIG ===
+    const API_BASE = 'https://artvision-portal.vercel.app/api/webmaster';
     
     const CLIENTS_CONFIG = {
-      'tvorimsovershenstvo.ru': { name: 'Творим Совершенство', avatar: 'ТС', color: '#667eea', hostId: 'https:tvorimsovershenstvo.ru:443' },
-      'vlpco.ru': { name: 'VLPco', avatar: 'VL', color: '#ec4899', hostId: 'https:vlpco.ru:443' },
-      'burenie-skv.ru': { name: 'Бурение СКВ', avatar: 'БС', color: '#06b6d4', hostId: 'https:burenie-skv.ru:443' },
-      'otido.ru': { name: 'Otido', avatar: 'OT', color: '#f59e0b', hostId: 'https:otido.ru:443' },
-      'extru-tech.ru': { name: 'Extru-Tech', avatar: 'ET', color: '#10b981', hostId: 'https:extru-tech.ru:443' }
+      'tvorimsovershenstvo.ru': { name: 'Творим Совершенство', avatar: 'ТС', color: '#667eea' },
+      'vlpco.ru': { name: 'VLPco', avatar: 'VL', color: '#ec4899' },
+      'burenie-skv.ru': { name: 'Бурение СКВ', avatar: 'БС', color: '#06b6d4' },
+      'otido.ru': { name: 'Otido', avatar: 'OT', color: '#f59e0b' },
+      'extru-tech.ru': { name: 'Extru-Tech', avatar: 'ET', color: '#10b981' }
     };
     
     async function fetchWebmasterData(domain) {
-      const config = CLIENTS_CONFIG[domain];
-      if (!config) return null;
-      
-      const hostId = encodeURIComponent(config.hostId);
-      const url = `https://api.webmaster.yandex.net/v4/user/${WEBMASTER_USER}/hosts/${hostId}/search-queries/popular?order_by=TOTAL_SHOWS&query_indicator=TOTAL_SHOWS&query_indicator=TOTAL_CLICKS&query_indicator=AVG_SHOW_POSITION&limit=20`;
-      
       try {
-        const res = await fetch(url, {
-          headers: { 'Authorization': `OAuth ${WEBMASTER_TOKEN}` }
-        });
+        const res = await fetch(`${API_BASE}?domain=${domain}`);
         const data = await res.json();
         
-        if (!data.queries) return null;
+        if (data.error) {
+          console.error('API error:', data.error);
+          return null;
+        }
         
+        const config = CLIENTS_CONFIG[domain] || { name: data.name, avatar: data.name[0], color: data.color };
+        
+        // Добавляем случайные изменения для демо (в реале нужно сравнивать с прошлым периодом)
         const queries = data.queries.map(q => ({
-          q: q.query_text,
-          pos: Math.round((q.indicators?.AVG_SHOW_POSITION || 0) * 10) / 10,
-          shows: Math.round(q.indicators?.TOTAL_SHOWS || 0),
-          clicks: Math.round(q.indicators?.TOTAL_CLICKS || 0),
+          ...q,
           change: Math.floor(Math.random() * 6) - 2
         }));
-        
-        const totalShows = queries.reduce((sum, q) => sum + q.shows, 0);
-        const totalClicks = queries.reduce((sum, q) => sum + q.clicks, 0);
-        const avgPos = queries.length ? queries.reduce((sum, q) => sum + q.pos, 0) / queries.length : 0;
         
         return {
           client: { name: config.name, domain, avatar: config.avatar },
           stats: {
-            shows: { value: totalShows, change: Math.floor(Math.random() * 30) },
-            clicks: { value: totalClicks, change: Math.floor(Math.random() * 25) },
-            position: { value: Math.round(avgPos * 10) / 10, change: Math.floor(Math.random() * 15) }
+            shows: { value: data.stats.shows, change: Math.floor(Math.random() * 30) },
+            clicks: { value: data.stats.clicks, change: Math.floor(Math.random() * 25) },
+            position: { value: data.stats.position, change: Math.floor(Math.random() * 15) }
           },
-          positions: [15, 14, 13, 12, 11, 10, Math.round(avgPos)],
+          positions: [15, 14, 13, 12, 11, 10, Math.round(data.stats.position)],
           queries
         };
       } catch (e) {
-        console.error('Webmaster API error:', e);
+        console.error('Fetch error:', e);
         return null;
       }
     }
@@ -807,23 +797,27 @@
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Загрузка проектов...</div></div>';
       
       const projects = [];
-      for (const [domain, config] of Object.entries(CLIENTS_CONFIG)) {
-        const data = await fetchWebmasterData(domain);
-        if (data) {
-          projects.push({
-            name: config.name,
-            domain,
-            color: config.color,
-            top10: data.queries.filter(q => q.pos <= 10).length,
-            shows: data.stats.shows.value,
-            clicks: data.stats.clicks.value,
-            mrr: 45000
-          });
+      for (const domain of Object.keys(CLIENTS_CONFIG)) {
+        try {
+          const res = await fetch(`${API_BASE}?domain=${domain}`);
+          const data = await res.json();
+          if (data && !data.error) {
+            projects.push({
+              name: data.name || CLIENTS_CONFIG[domain].name,
+              domain,
+              color: data.color || CLIENTS_CONFIG[domain].color,
+              top10: data.stats.top10 || 0,
+              shows: data.stats.shows,
+              clicks: data.stats.clicks,
+              mrr: 45000
+            });
+          }
+        } catch (e) {
+          console.error(`Error loading ${domain}:`, e);
         }
       }
       
       if (projects.length === 0) {
-        // Fallback to demo
         projects.push(...DEMO_DATA.projects);
       }
       
