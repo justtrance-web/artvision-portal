@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artvision Portal — SEO Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #00d4aa;
+            --accent-dim: #00d4aa33;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --border: #2a2a3a;
+            --positive: #00d4aa;
+            --negative: #ff4757;
+            --warning: #ffa502;
+        }
+        * { font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg-primary); color: var(--text-primary); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Градиентный фон */
+        .gradient-bg {
+            background: 
+                radial-gradient(ellipse at 20% 0%, rgba(0,212,170,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(99,102,241,0.06) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+        
+        /* Карточки */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        .card:hover { border-color: var(--accent-dim); }
+        
+        /* Метрики */
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Позиции таблица */
+        .position-row {
+            transition: all 0.2s ease;
+        }
+        .position-row:hover {
+            background: rgba(0,212,170,0.05);
+        }
+        
+        /* Позиция бейдж */
+        .pos-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .pos-top3 { background: rgba(0,212,170,0.2); color: #00d4aa; }
+        .pos-top10 { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .pos-top30 { background: rgba(255,165,2,0.2); color: #ffa502; }
+        .pos-low { background: rgba(255,71,87,0.15); color: #ff6b7a; }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+        }
+        .nav-item {
+            padding: 12px 20px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.05); }
+        .nav-item.active { 
+            background: var(--accent-dim); 
+            color: var(--accent);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeIn 0.4s ease both;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        
+        /* Loader */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 flex flex-col">
+            <div class="p-6 border-b border-[var(--border)]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-indigo-500 flex items-center justify-center text-black font-bold text-lg">A</div>
+                    <div>
+                        <div class="font-semibold">Artvision</div>
+                        <div class="text-xs text-[var(--text-secondary)]">SEO Portal</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Client Selector -->
+            <div class="p-4 border-b border-[var(--border)]">
+                <select id="clientSelect" class="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[var(--accent)]">
+                    <option value="all">Все клиенты</option>
+                </select>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <div class="nav-item active" data-section="dashboard">
+                    <span class="mr-3">📊</span> Дашборд
+                </div>
+                <div class="nav-item" data-section="positions">
+                    <span class="mr-3">📈</span> Позиции
+                </div>
+                <div class="nav-item" data-section="reports">
+                    <span class="mr-3">📄</span> Отчёты
+                </div>
+                <div class="nav-item" data-section="recommendations">
+                    <span class="mr-3">💡</span> Рекомендации
+                </div>
+            </nav>
+            
+            <!-- User -->
+            <div class="p-4 border-t border-[var(--border)]">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-medium">K</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium truncate">Кирилл</div>
+                        <div class="text-xs text-[var(--text-secondary)]">Агентство</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <div class="p-8">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-2xl font-semibold" id="pageTitle">Дашборд</h1>
+                        <p class="text-[var(--text-secondary)] mt-1" id="pageSubtitle">Обзор всех проектов</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-sm text-[var(--text-secondary)]" id="lastUpdate">Обновлено: загрузка...</div>
+                        <button onclick="refreshData()" class="px-4 py-2 bg-[var(--accent)] text-black rounded-lg font-medium hover:opacity-90 transition">
+                            Обновить
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Section -->
+                <section id="dashboard-section">
+                    <!-- Metrics -->
+                    <div class="grid grid-cols-4 gap-6 mb-8">
+                        <div class="card p-6 animate-in">
+                            <div class="text-[var(--text-secondary)] text-sm mb-2">Страниц в индексе</div>
+                            <div class="metric-value mono" id="metricPages">—</div>
+                            <div class="text-sm text-[var(--text-secondary)] mt-2">всего по клиентам</div>
+                        </div>
+                        <div class="card p-6 animate-in delay-1">
+                            <div class="text-[var(--text-secondary)] text-sm mb-2">В ТОП-10</div>
+                            <div class="metric-value mono" id="metricTop10">—</div>
+                            <div class="text-sm text-[var(--positive)] mt-2">запросов</div>
+                        </div>
+                        <div class="card p-6 animate-in delay-2">
+                            <div class="text-[var(--text-secondary)] text-sm mb-2">Показы</div>
+                            <div class="metric-value mono" id="metricShows">—</div>
+                            <div class="text-sm text-[var(--text-secondary)] mt-2">за период</div>
+                        </div>
+                        <div class="card p-6 animate-in delay-3">
+                            <div class="text-[var(--text-secondary)] text-sm mb-2">Клики</div>
+                            <div class="metric-value mono" id="metricClicks">—</div>
+                            <div class="text-sm text-[var(--text-secondary)] mt-2">за период</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart -->
+                    <div class="card p-6 mb-8 animate-in delay-4">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="font-semibold">Динамика по клиентам</h3>
+                            <div class="flex gap-2">
+                                <button class="chart-btn active px-3 py-1.5 rounded-lg text-sm" data-type="pages">Страницы</button>
+                                <button class="chart-btn px-3 py-1.5 rounded-lg text-sm" data-type="positions">Позиции</button>
+                            </div>
+                        </div>
+                        <canvas id="mainChart" height="100"></canvas>
+                    </div>
+                    
+                    <!-- Clients Grid -->
+                    <h3 class="font-semibold mb-4">Проекты</h3>
+                    <div class="grid grid-cols-3 gap-4" id="clientsGrid">
+                        <div class="flex items-center justify-center py-12">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Positions Section -->
+                <section id="positions-section" class="hidden">
+                    <div class="card overflow-hidden">
+                        <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                            <div class="flex gap-2">
+                                <button class="pos-filter active px-3 py-1.5 rounded-lg text-sm bg-[var(--accent-dim)] text-[var(--accent)]" data-filter="all">Все</button>
+                                <button class="pos-filter px-3 py-1.5 rounded-lg text-sm" data-filter="top3">ТОП-3</button>
+                                <button class="pos-filter px-3 py-1.5 rounded-lg text-sm" data-filter="top10">ТОП-10</button>
+                                <button class="pos-filter px-3 py-1.5 rounded-lg text-sm" data-filter="top30">ТОП-30</button>
+                            </div>
+                            <input type="text" id="searchQuery" placeholder="Поиск по запросам..." class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:border-[var(--accent)]">
+                        </div>
+                        <div class="divide-y divide-[var(--border)]" id="positionsTable">
+                            <div class="flex items-center justify-center py-12">
+                                <div class="loader"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Reports Section -->
+                <section id="reports-section" class="hidden">
+                    <div class="card p-8 text-center">
+                        <div class="text-6xl mb-4">📄</div>
+                        <h3 class="text-xl font-semibold mb-2">Отчёты</h3>
+                        <p class="text-[var(--text-secondary)]">Раздел в разработке</p>
+                    </div>
+                </section>
+                
+                <!-- Recommendations Section -->
+                <section id="recommendations-section" class="hidden">
+                    <div class="card overflow-hidden" id="recommendationsCard">
+                        <div class="flex items-center justify-center py-12">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Supabase конфиг
+        const SUPABASE_URL = 'https://gjwdlbwznkwjghquhhyz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqd2RsYnd6bmt3amdocXVoaHl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTEzNjksImV4cCI6MjA4MjAyNzM2OX0.pQTxrgsKygh3S83AvVv9Lg0KgebXBwKbD5ID-gsmdDI';
+        
+        let clients = [];
+        let positions = [];
+        let recommendations = [];
+        let mainChart = null;
+        
+        // API helpers
+        async function supabaseGet(table, query = '') {
+            const resp = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            return resp.json();
+        }
+        
+        // Load data
+        async function loadData() {
+            try {
+                // Клиенты
+                clients = await supabaseGet('clients', '?select=*&status=eq.active');
+                
+                // Позиции
+                positions = await supabaseGet('positions', '?select=*,clients(name,domain)&order=impressions.desc&limit=200');
+                
+                // Рекомендации
+                recommendations = await supabaseGet('recommendations', '?select=*,clients(name)');
+                
+                updateUI();
+                document.getElementById('lastUpdate').textContent = `Обновлено: ${new Date().toLocaleTimeString('ru')}`;
+            } catch (e) {
+                console.error('Load error:', e);
+            }
+        }
+        
+        // Update UI
+        function updateUI() {
+            // Metrics
+            const totalPages = clients.reduce((sum, c) => sum + (c.pages_indexed || 0), 0);
+            const top10Count = positions.filter(p => p.position > 0 && p.position <= 10).length;
+            const totalShows = positions.reduce((sum, p) => sum + (p.impressions || 0), 0);
+            const totalClicks = positions.reduce((sum, p) => sum + (p.clicks || 0), 0);
+            
+            document.getElementById('metricPages').textContent = totalPages.toLocaleString('ru');
+            document.getElementById('metricTop10').textContent = top10Count;
+            document.getElementById('metricShows').textContent = totalShows.toLocaleString('ru');
+            document.getElementById('metricClicks').textContent = totalClicks.toLocaleString('ru');
+            
+            // Client selector
+            const select = document.getElementById('clientSelect');
+            select.innerHTML = '<option value="all">Все клиенты</option>' + 
+                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+            // Clients grid
+            renderClientsGrid();
+            
+            // Positions table
+            renderPositions();
+            
+            // Recommendations
+            renderRecommendations();
+            
+            // Chart
+            renderChart();
+        }
+        
+        function renderClientsGrid() {
+            const grid = document.getElementById('clientsGrid');
+            grid.innerHTML = clients.map(c => {
+                const clientPositions = positions.filter(p => p.client_id === c.id);
+                const top10 = clientPositions.filter(p => p.position > 0 && p.position <= 10).length;
+                const shows = clientPositions.reduce((sum, p) => sum + (p.impressions || 0), 0);
+                
+                return `
+                    <div class="card p-5 hover:border-[var(--accent)] cursor-pointer" onclick="selectClient('${c.id}')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="font-medium">${c.name}</div>
+                            <span class="text-xs px-2 py-1 rounded-full ${c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">${c.status === 'active' ? 'Активен' : 'Presale'}</span>
+                        </div>
+                        <div class="text-sm text-[var(--text-secondary)] mb-3">${c.domain}</div>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div class="text-lg font-semibold mono">${c.pages_indexed || 0}</div>
+                                <div class="text-xs text-[var(--text-secondary)]">страниц</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-semibold mono text-[var(--accent)]">${top10}</div>
+                                <div class="text-xs text-[var(--text-secondary)]">ТОП-10</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-semibold mono">${shows}</div>
+                                <div class="text-xs text-[var(--text-secondary)]">показов</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderPositions(filter = 'all', search = '') {
+            let filtered = positions;
+            
+            if (filter === 'top3') filtered = filtered.filter(p => p.position > 0 && p.position <= 3);
+            else if (filter === 'top10') filtered = filtered.filter(p => p.position > 0 && p.position <= 10);
+            else if (filter === 'top30') filtered = filtered.filter(p => p.position > 0 && p.position <= 30);
+            
+            if (search) {
+                const s = search.toLowerCase();
+                filtered = filtered.filter(p => p.query.toLowerCase().includes(s));
+            }
+            
+            const table = document.getElementById('positionsTable');
+            if (filtered.length === 0) {
+                table.innerHTML = '<div class="p-8 text-center text-[var(--text-secondary)]">Нет данных</div>';
+                return;
+            }
+            
+            table.innerHTML = filtered.slice(0, 50).map(p => {
+                const pos = p.position || 0;
+                let posClass = 'pos-low';
+                if (pos > 0 && pos <= 3) posClass = 'pos-top3';
+                else if (pos <= 10) posClass = 'pos-top10';
+                else if (pos <= 30) posClass = 'pos-top30';
+                
+                const clientName = p.clients?.name || '—';
+                
+                return `
+                    <div class="position-row flex items-center px-6 py-4">
+                        <div class="w-16">
+                            <span class="pos-badge ${posClass} mono">${pos > 0 ? pos.toFixed(1) : '—'}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium truncate">${p.query}</div>
+                            <div class="text-sm text-[var(--text-secondary)]">${clientName}</div>
+                        </div>
+                        <div class="w-24 text-right">
+                            <div class="font-medium mono">${(p.impressions || 0).toLocaleString('ru')}</div>
+                            <div class="text-xs text-[var(--text-secondary)]">показов</div>
+                        </div>
+                        <div class="w-20 text-right">
+                            <div class="font-medium mono">${p.clicks || 0}</div>
+                            <div class="text-xs text-[var(--text-secondary)]">кликов</div>
+                        </div>
+                        <div class="w-16 text-right">
+                            <div class="font-medium mono text-[var(--accent)]">${(p.ctr || 0).toFixed(1)}%</div>
+                            <div class="text-xs text-[var(--text-secondary)]">CTR</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderRecommendations() {
+            const card = document.getElementById('recommendationsCard');
+            if (recommendations.length === 0) {
+                card.innerHTML = '<div class="p-8 text-center text-[var(--text-secondary)]">Нет рекомендаций</div>';
+                return;
+            }
+            
+            card.innerHTML = `
+                <div class="p-4 border-b border-[var(--border)]">
+                    <h3 class="font-semibold">Потенциал роста</h3>
+                </div>
+                <div class="divide-y divide-[var(--border)]">
+                    ${recommendations.map(r => `
+                        <div class="flex items-center justify-between p-5 hover:bg-[var(--accent-dim)] transition">
+                            <div>
+                                <div class="font-medium">${r.cluster}</div>
+                                <div class="text-sm text-[var(--text-secondary)]">${r.clients?.name || '—'} · ${r.description || ''}</div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div class="font-semibold text-[var(--accent)] mono">+${r.potential_shows || 0}</div>
+                                    <div class="text-xs text-[var(--text-secondary)]">показов</div>
+                                </div>
+                                <button class="px-4 py-2 bg-[var(--accent)] text-black rounded-lg text-sm font-medium hover:opacity-90">
+                                    Создать ТЗ
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function renderChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) mainChart.destroy();
+            
+            const labels = clients.map(c => c.name.substring(0, 15));
+            const pages = clients.map(c => c.pages_indexed || 0);
+            
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Страниц в индексе',
+                        data: pages,
+                        backgroundColor: 'rgba(0, 212, 170, 0.6)',
+                        borderColor: 'rgba(0, 212, 170, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8888a0' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8888a0' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                const section = item.dataset.section;
+                document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+                document.getElementById(`${section}-section`).classList.remove('hidden');
+                
+                const titles = {
+                    dashboard: ['Дашборд', 'Обзор всех проектов'],
+                    positions: ['Позиции', 'Поисковые запросы и позиции'],
+                    reports: ['Отчёты', 'История отчётов'],
+                    recommendations: ['Рекомендации', 'Потенциал роста']
+                };
+                document.getElementById('pageTitle').textContent = titles[section][0];
+                document.getElementById('pageSubtitle').textContent = titles[section][1];
+            });
+        });
+        
+        // Position filters
+        document.querySelectorAll('.pos-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.pos-filter').forEach(b => {
+                    b.classList.remove('active', 'bg-[var(--accent-dim)]', 'text-[var(--accent)]');
+                });
+                btn.classList.add('active', 'bg-[var(--accent-dim)]', 'text-[var(--accent)]');
+                renderPositions(btn.dataset.filter, document.getElementById('searchQuery').value);
+            });
+        });
+        
+        // Search
+        document.getElementById('searchQuery').addEventListener('input', (e) => {
+            const activeFilter = document.querySelector('.pos-filter.active')?.dataset.filter || 'all';
+            renderPositions(activeFilter, e.target.value);
+        });
+        
+        // Client selector
+        document.getElementById('clientSelect').addEventListener('change', (e) => {
+            if (e.target.value === 'all') {
+                renderPositions();
+            } else {
+                const filtered = positions.filter(p => p.client_id === e.target.value);
+                document.getElementById('positionsTable').innerHTML = filtered.length ? 
+                    filtered.slice(0, 50).map(p => {
+                        const pos = p.position || 0;
+                        let posClass = 'pos-low';
+                        if (pos > 0 && pos <= 3) posClass = 'pos-top3';
+                        else if (pos <= 10) posClass = 'pos-top10';
+                        else if (pos <= 30) posClass = 'pos-top30';
+                        
+                        return `
+                            <div class="position-row flex items-center px-6 py-4">
+                                <div class="w-16">
+                                    <span class="pos-badge ${posClass} mono">${pos > 0 ? pos.toFixed(1) : '—'}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium truncate">${p.query}</div>
+                                </div>
+                                <div class="w-24 text-right">
+                                    <div class="font-medium mono">${(p.impressions || 0).toLocaleString('ru')}</div>
+                                    <div class="text-xs text-[var(--text-secondary)]">показов</div>
+                                </div>
+                                <div class="w-20 text-right">
+                                    <div class="font-medium mono">${p.clicks || 0}</div>
+                                    <div class="text-xs text-[var(--text-secondary)]">кликов</div>
+                                </div>
+                                <div class="w-16 text-right">
+                                    <div class="font-medium mono text-[var(--accent)]">${(p.ctr || 0).toFixed(1)}%</div>
+                                    <div class="text-xs text-[var(--text-secondary)]">CTR</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('') : 
+                    '<div class="p-8 text-center text-[var(--text-secondary)]">Нет данных</div>';
+            }
+        });
+        
+        function selectClient(id) {
+            document.getElementById('clientSelect').value = id;
+            document.getElementById('clientSelect').dispatchEvent(new Event('change'));
+            document.querySelector('[data-section="positions"]').click();
+        }
+        
+        function refreshData() {
+            loadData();
+        }
+        
+        // Init
+        loadData();
+    </script>
+</body>
+</html>
