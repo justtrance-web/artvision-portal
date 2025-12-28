@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Токен хранится в env переменных Vercel
 const TOKEN = process.env.WEBMASTER_TOKEN || "y0__xDfh5o8GJTCPCDmgMTjFWHcPZSPYeLX-r6YqBOWv0rQZBsU";
 const USER_ID = "126256095";
 
@@ -12,20 +11,29 @@ const HOSTS: Record<string, { name: string; hostId: string; color: string }> = {
   "extru-tech.ru": { name: "Extru-Tech", hostId: "https:extru-tech.ru:443", color: "#10b981" }
 };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get("domain");
   const action = searchParams.get("action") || "stats";
   
-  // Список всех доменов
   if (action === "list") {
     return NextResponse.json({ 
       domains: Object.entries(HOSTS).map(([d, h]) => ({ domain: d, name: h.name, color: h.color }))
-    });
+    }, { headers: corsHeaders });
   }
   
   if (!domain || !HOSTS[domain]) {
-    return NextResponse.json({ error: "Invalid domain", available: Object.keys(HOSTS) }, { status: 400 });
+    return NextResponse.json({ error: "Invalid domain", available: Object.keys(HOSTS) }, { status: 400, headers: corsHeaders });
   }
   
   const hostId = encodeURIComponent(HOSTS[domain].hostId);
@@ -34,14 +42,13 @@ export async function GET(request: Request) {
     const url = `https://api.webmaster.yandex.net/v4/user/${USER_ID}/hosts/${hostId}/search-queries/popular?order_by=TOTAL_SHOWS&query_indicator=TOTAL_SHOWS&query_indicator=TOTAL_CLICKS&query_indicator=AVG_SHOW_POSITION&limit=20`;
     
     const res = await fetch(url, {
-      headers: { Authorization: `OAuth ${TOKEN}` },
-      next: { revalidate: 300 } // Кэш 5 минут
+      headers: { Authorization: `OAuth ${TOKEN}` }
     });
     
     const data = await res.json();
     
     if (!data.queries) {
-      return NextResponse.json({ error: "No data", raw: data }, { status: 500 });
+      return NextResponse.json({ error: "No data", raw: data }, { status: 500, headers: corsHeaders });
     }
     
     const queries = data.queries.map((q: any) => ({
@@ -60,17 +67,12 @@ export async function GET(request: Request) {
       domain,
       name: HOSTS[domain].name,
       color: HOSTS[domain].color,
-      stats: {
-        shows: totalShows,
-        clicks: totalClicks,
-        position: Math.round(avgPos * 10) / 10,
-        top10
-      },
+      stats: { shows: totalShows, clicks: totalClicks, position: Math.round(avgPos * 10) / 10, top10 },
       queries
-    });
+    }, { headers: corsHeaders });
     
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
 
