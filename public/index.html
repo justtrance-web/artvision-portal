@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Artvision Portal — Клиентский кабинет</title>
+    <title>Artvision Portal</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-primary: #0a0f1a;
             --bg-secondary: #111827;
             --bg-card: #1a2332;
             --bg-card-hover: #222d3f;
-            
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --bg-input: #0d1320;
             
             --accent-blue: #3b82f6;
             --accent-cyan: #06b6d4;
@@ -24,21 +23,20 @@
             --accent-red: #ef4444;
             --accent-purple: #8b5cf6;
             
-            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --border: #1e293b;
             --border-light: #334155;
             
-            --gradient-blue: linear-gradient(135deg, #3b82f6, #06b6d4);
-            --gradient-green: linear-gradient(135deg, #10b981, #06b6d4);
+            --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            --gradient-green: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
             
-            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
-            --shadow-glow: 0 0 30px rgba(59,130,246,0.15);
-            
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            
-            --sidebar-width: 280px;
-            --header-height: 64px;
+            --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+            --radius: 12px;
+            --radius-lg: 20px;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,126 +47,146 @@
             color: var(--text-primary);
             min-height: 100vh;
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
         }
         
-        /* === MOBILE HEADER === */
-        .mobile-header {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: var(--header-height);
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 16px;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 100;
-        }
-        
-        .mobile-logo {
+        /* === LAYOUT === */
+        .app {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-        
-        .mobile-logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--gradient-blue);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-        
-        .menu-btn {
-            width: 44px;
-            height: 44px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 1.3rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-height: 100vh;
         }
         
         /* === SIDEBAR === */
         .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: var(--sidebar-width);
-            height: 100vh;
+            width: 260px;
             background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            border-right: 1px solid var(--border);
             padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            z-index: 200;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
             transition: transform 0.3s ease;
         }
         
         .sidebar-header {
-            padding: 0 8px 24px;
-            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
             margin-bottom: 24px;
         }
         
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-        }
-        
-        .logo-icon {
             width: 44px;
             height: 44px;
             background: var(--gradient-blue);
-            border-radius: var(--radius-md);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: var(--shadow-glow);
         }
         
         .logo-text {
-            font-weight: 800;
-            font-size: 1.3rem;
-            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.02em;
         }
         
-        .nav-section { margin-bottom: 24px; }
+        .logo-text span {
+            color: var(--accent-cyan);
+        }
+        
+        /* Role Switcher */
+        .role-switcher {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .role-btn.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        /* Project Selector */
+        .project-selector {
+            margin-bottom: 20px;
+        }
+        
+        .project-select {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%2394a3b8'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+        
+        .project-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        /* Nav */
+        .nav {
+            flex: 1;
+        }
+        
+        .nav-section {
+            margin-bottom: 24px;
+        }
         
         .nav-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            font-size: 11px;
+            font-weight: 700;
             color: var(--text-muted);
-            padding: 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             margin-bottom: 8px;
+            padding: 0 12px;
         }
         
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px;
-            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            border-radius: 10px;
             color: var(--text-secondary);
             text-decoration: none;
-            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
             cursor: pointer;
-            font-size: 0.95rem;
+            margin-bottom: 4px;
         }
         
         .nav-item:hover {
@@ -177,834 +195,1442 @@
         }
         
         .nav-item.active {
-            background: var(--accent-blue);
-            color: white;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
         }
         
-        .nav-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
         .nav-badge {
             margin-left: auto;
             background: var(--accent-red);
             color: white;
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             padding: 2px 8px;
-            border-radius: 12px;
+            border-radius: 10px;
         }
         
-        .sidebar-footer {
-            margin-top: auto;
+        /* User */
+        .sidebar-user {
             padding-top: 16px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--border);
         }
         
         .user-card {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px;
+            padding: 10px;
             background: var(--bg-card);
-            border-radius: var(--radius-md);
+            border-radius: 10px;
         }
         
         .user-avatar {
             width: 40px;
             height: 40px;
-            background: var(--gradient-green);
-            border-radius: 50%;
+            border-radius: 10px;
+            background: var(--gradient-purple);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
         }
         
-        .user-name { font-weight: 600; font-size: 0.9rem; }
-        .user-role { font-size: 0.75rem; color: var(--text-muted); }
-        
-        /* === OVERLAY === */
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 150;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        .user-info {
+            flex: 1;
+            min-width: 0;
         }
         
-        .overlay.active {
-            display: block;
-            opacity: 1;
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        /* === MAIN === */
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        /* === MAIN CONTENT === */
         .main {
-            margin-left: var(--sidebar-width);
-            padding: 32px;
-            min-height: 100vh;
+            flex: 1;
+            margin-left: 260px;
+            padding: 24px 32px;
+            min-width: 0;
         }
         
+        /* Page Header */
         .page-header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 32px;
-            gap: 16px;
+            margin-bottom: 28px;
         }
         
         .page-title {
-            font-size: 1.75rem;
+            font-size: 28px;
             font-weight: 800;
-            margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
         
-        .page-subtitle { color: var(--text-secondary); font-size: 0.95rem; }
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
         
-        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
         
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
+            padding: 10px 18px;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
-            border: none;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            transition: all 0.15s;
+            border: none;
+            font-family: inherit;
         }
         
         .btn-primary {
             background: var(--gradient-blue);
             color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
         
         .btn-secondary {
             background: var(--bg-card);
             color: var(--text-primary);
-            border: 1px solid var(--border-light);
+            border: 1px solid var(--border);
         }
         
-        .btn-secondary:hover { background: var(--bg-card-hover); }
-        
-        /* === STATS === */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-        
-        .stat-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-glow);
-        }
-        
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        
-        .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-        }
-        
-        .stat-icon.blue { background: rgba(59,130,246,0.15); }
-        .stat-icon.green { background: rgba(16,185,129,0.15); }
-        .stat-icon.amber { background: rgba(245,158,11,0.15); }
-        .stat-icon.purple { background: rgba(139,92,246,0.15); }
-        
-        .stat-trend {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .stat-trend.up { color: var(--accent-green); }
-        .stat-trend.down { color: var(--accent-red); }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-            background: var(--gradient-blue);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .stat-label { color: var(--text-secondary); font-size: 0.85rem; }
-        
-        /* === CONTENT GRID === */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 24px;
-        }
-        
-        .section {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .section-title {
-            font-size: 1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-body { padding: 20px 24px; }
-        
-        /* === DOCUMENTS === */
-        .doc-list { display: flex; flex-direction: column; gap: 12px; }
-        
-        .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-        
-        .doc-item:hover {
-            border-color: var(--border-light);
+        .btn-secondary:hover {
             background: var(--bg-card-hover);
         }
         
-        .doc-icon {
-            width: 44px;
-            height: 44px;
-            background: rgba(59,130,246,0.1);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
+        /* === METRICS GRID === */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
         }
         
-        .doc-info { flex: 1; min-width: 0; }
-        .doc-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
-        .doc-meta { font-size: 0.8rem; color: var(--text-muted); }
-        
-        .doc-amount {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        
-        .status-paid { background: rgba(16,185,129,0.15); color: var(--accent-green); }
-        .status-pending { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
-        .status-overdue { background: rgba(239,68,68,0.15); color: var(--accent-red); }
-        .status-ready { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
-        
-        .doc-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        
-        .icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            font-size: 1rem;
-        }
-        
-        .icon-btn:hover {
+        .metric-card {
             background: var(--bg-card);
-            color: var(--accent-blue);
-            border-color: var(--accent-blue);
-        }
-        
-        /* === UPSALE === */
-        .upsale-card {
-            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
-            border: 1px solid var(--accent-blue);
+            border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 24px;
-            margin-bottom: 20px;
+            padding: 20px;
             position: relative;
             overflow: hidden;
         }
         
-        .upsale-card::before {
+        .metric-card::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
         }
         
-        .upsale-tag {
-            display: inline-block;
-            background: var(--gradient-blue);
-            color: white;
-            font-size: 0.7rem;
+        .metric-card.blue::before { background: var(--gradient-blue); }
+        .metric-card.green::before { background: var(--accent-green); }
+        .metric-card.amber::before { background: var(--accent-amber); }
+        .metric-card.purple::before { background: var(--gradient-purple); }
+        
+        .metric-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+        
+        .metric-card.blue .metric-icon { background: rgba(59, 130, 246, 0.15); }
+        .metric-card.green .metric-icon { background: rgba(16, 185, 129, 0.15); }
+        .metric-card.amber .metric-icon { background: rgba(245, 158, 11, 0.15); }
+        .metric-card.purple .metric-icon { background: rgba(139, 92, 246, 0.15); }
+        
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.02em;
+        }
+        
+        .metric-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .metric-change.up {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .metric-change.down {
+            color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        /* === CONTENT GRID === */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .card-title {
+            font-size: 16px;
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            margin-bottom: 12px;
+        }
+        
+        .card-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 8px;
+        }
+        
+        .card-tab {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        
+        .card-tab.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Chart */
+        .chart-container {
+            height: 280px;
+            position: relative;
+        }
+        
+        /* === QUERIES TABLE === */
+        .queries-table {
+            width: 100%;
+        }
+        
+        .query-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 80px 100px;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+        
+        .query-row:last-child {
+            border-bottom: none;
+        }
+        
+        .query-row.header {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
-        .upsale-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-        .upsale-text { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px; }
-        
-        .upsale-metric {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 16px;
+        .query-text {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        .upsale-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--accent-green);
+        .query-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            text-align: right;
         }
         
-        .upsale-label { color: var(--text-secondary); font-size: 0.9rem; }
-        
-        /* === POSITIONS === */
-        .position-item {
-            display: flex;
+        .position-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .position-item:last-child { border-bottom: none; }
-        
-        .position-keyword { font-weight: 500; margin-bottom: 4px; font-size: 0.95rem; }
-        .position-freq { font-size: 0.8rem; color: var(--text-muted); }
-        
-        .position-rank { display: flex; align-items: center; gap: 8px; }
-        
-        .rank-number {
-            font-size: 1.4rem;
-            font-weight: 800;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
             font-family: 'JetBrains Mono', monospace;
         }
         
-        .rank-number.top3 { color: var(--accent-green); }
-        .rank-number.top10 { color: var(--accent-blue); }
-        .rank-number.top30 { color: var(--accent-amber); }
+        .position-badge.top3 {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
         
-        .rank-change { font-size: 0.8rem; font-weight: 600; }
-        .rank-change.up { color: var(--accent-green); }
-        .rank-change.down { color: var(--accent-red); }
+        .position-badge.top10 {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
         
-        /* === RESPONSIVE === */
-        @media (max-width: 1200px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .content-grid { grid-template-columns: 1fr; }
+        .position-badge.top30 {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+        }
+        
+        .position-badge.below {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+        
+        /* === RECOMMENDATIONS === */
+        .recommendation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rec-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .rec-info p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .rec-potential {
+            text-align: right;
+        }
+        
+        .rec-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .rec-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        /* === DOCUMENTS LIST === */
+        .documents-list {
+            padding: 0 20px 20px;
+        }
+        
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        
+        .doc-item:hover {
+            background: var(--bg-card-hover);
+        }
+        
+        .doc-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .doc-icon.pdf { background: rgba(239, 68, 68, 0.15); }
+        .doc-icon.invoice { background: rgba(16, 185, 129, 0.15); }
+        .doc-icon.report { background: rgba(59, 130, 246, 0.15); }
+        
+        .doc-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .doc-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .doc-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .doc-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        
+        .doc-status.paid {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+        
+        .doc-status.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+        }
+        
+        /* === AGENCY SECTION === */
+        .agency-only {
+            display: none;
+        }
+        
+        .app.agency-mode .agency-only {
+            display: block;
+        }
+        
+        .app.agency-mode .client-only {
+            display: none;
+        }
+        
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .project-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+        
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        
+        .project-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+        }
+        
+        .project-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+        
+        .project-domain {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .project-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .project-metric {
+            text-align: center;
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 8px;
+        }
+        
+        .project-metric-value {
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .project-metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .project-status {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        
+        .project-status.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+        
+        .project-status.presale {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+        }
+        
+        /* === MOBILE === */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 200;
+        }
+        
+        .mobile-menu-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: none;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 90;
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        
+        .bottom-nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        
+        .bottom-nav-item.active {
+            color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .bottom-nav-icon {
+            font-size: 22px;
+        }
+        
+        @media (max-width: 1024px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
-            .mobile-header { display: flex; }
-            
             .sidebar {
                 transform: translateX(-100%);
-                width: 85%;
-                max-width: 320px;
             }
             
-            .sidebar.open { transform: translateX(0); }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .overlay.open {
+                display: block;
+            }
             
             .main {
                 margin-left: 0;
+                padding: 80px 16px 100px;
+            }
+            
+            .mobile-header {
+                display: flex;
+            }
+            
+            .bottom-nav {
+                display: block;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .metric-card {
                 padding: 16px;
-                padding-top: calc(var(--header-height) + 16px);
+            }
+            
+            .metric-value {
+                font-size: 22px;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
             }
             
             .page-header {
                 flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .page-title { font-size: 1.4rem; }
-            
-            .header-actions {
-                width: 100%;
-            }
-            
-            .header-actions .btn {
-                flex: 1;
-                justify-content: center;
-                padding: 14px 16px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-            
-            .stat-card { padding: 16px; }
-            .stat-value { font-size: 1.6rem; }
-            .stat-icon { width: 38px; height: 38px; font-size: 1.1rem; }
-            
-            .section-body { padding: 16px; }
-            
-            .doc-item {
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-            
-            .doc-info { width: calc(100% - 60px); }
-            
-            .doc-amount,
-            .status-badge,
-            .doc-actions {
-                width: auto;
-            }
-            
-            .doc-row-bottom {
-                display: flex;
-                width: 100%;
-                justify-content: space-between;
-                align-items: center;
-                padding-top: 12px;
-                border-top: 1px solid var(--border-color);
-                margin-top: 4px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
-            
-            .stat-card {
-                display: flex;
-                align-items: center;
+                align-items: flex-start;
                 gap: 16px;
             }
             
-            .stat-header { margin-bottom: 0; }
-            .stat-content { flex: 1; }
-            .stat-trend { position: absolute; top: 16px; right: 16px; }
-            .stat-card { position: relative; }
+            .page-title {
+                font-size: 22px;
+            }
             
-            .header-actions { flex-direction: column; }
-            .header-actions .btn { width: 100%; }
+            .query-row {
+                grid-template-columns: 1fr 60px 70px;
+            }
             
-            .position-keyword { font-size: 0.9rem; }
-            .rank-number { font-size: 1.2rem; }
+            .query-row .query-value:nth-child(3),
+            .query-row .query-value:nth-child(4) {
+                display: none;
+            }
         }
         
-        /* === ANIMATIONS === */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 16px;
         }
         
-        .stat-card, .section, .upsale-card {
-            animation: fadeInUp 0.5s ease both;
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
-        .stat-card:nth-child(1) { animation-delay: 0.05s; }
-        .stat-card:nth-child(2) { animation-delay: 0.1s; }
-        .stat-card:nth-child(3) { animation-delay: 0.15s; }
-        .stat-card:nth-child(4) { animation-delay: 0.2s; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-        <div class="mobile-logo">
-            <div class="mobile-logo-icon">🚀</div>
-            <span>Artvision</span>
+    <div id="app">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="color: var(--text-muted);">Загрузка данных...</p>
         </div>
-        <button class="menu-btn" onclick="toggleMenu()" aria-label="Меню">☰</button>
-    </header>
-    
-    <!-- Overlay -->
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="#" class="logo">
-                <div class="logo-icon">🚀</div>
-                <span class="logo-text">Artvision</span>
-            </a>
-        </div>
+    </div>
+
+    <script>
+        // === CONFIG ===
+        const CONFIG = {
+            SUPABASE_URL: 'https://gjwdlbwznkwjghquhhyz.supabase.co',
+            SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqd2RsYnd6bmt3amdocXVoaHl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTEzNjksImV4cCI6MjA4MjAyNzM2OX0.pQTxrgsKygh3S83AvVv9Lg0KgebXBwKbD5ID-gsmdDI',
+            MANAGER_LINK: 'https://t.me/avpro_ru'
+        };
         
-        <nav>
-            <div class="nav-section">
-                <div class="nav-title">Основное</div>
-                <a href="#" class="nav-item active" onclick="closeMobileMenu()">
-                    <span class="nav-icon">📊</span>
-                    <span>Дашборд</span>
-                </a>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">📈</span>
-                    <span>Позиции</span>
-                </a>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">📄</span>
-                    <span>Отчёты</span>
-                </a>
-            </div>
+        // === STATE ===
+        let state = {
+            mode: 'client', // client | agency
+            currentPage: 'dashboard',
+            selectedProject: null,
+            clients: [],
+            positions: [],
+            recommendations: [],
+            telegramUser: null,
+            sidebarOpen: false
+        };
+        
+        // === INIT ===
+        async function init() {
+            // Telegram Web App
+            if (window.Telegram?.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                state.telegramUser = tg.initDataUnsafe?.user;
+                
+                tg.MainButton.setText('💬 Написать менеджеру');
+                tg.MainButton.show();
+                tg.MainButton.onClick(() => tg.openTelegramLink(CONFIG.MANAGER_LINK));
+            }
             
-            <div class="nav-section">
-                <div class="nav-title">Документы</div>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">📑</span>
-                    <span>Счета</span>
-                    <span class="nav-badge">2</span>
-                </a>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">✅</span>
-                    <span>Акты</span>
-                </a>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">📁</span>
-                    <span>Договоры</span>
-                </a>
-            </div>
+            // Load data
+            await loadData();
+            render();
+        }
+        
+        // === API ===
+        async function supabaseFetch(table, query = '') {
+            const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}${query}`;
+            const resp = await fetch(url, {
+                headers: {
+                    'apikey': CONFIG.SUPABASE_KEY,
+                    'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`
+                }
+            });
+            return resp.json();
+        }
+        
+        async function loadData() {
+            try {
+                // Load clients
+                state.clients = await supabaseFetch('clients', '?select=*&order=name');
+                
+                // Load positions
+                state.positions = await supabaseFetch('positions', '?select=*&order=impressions.desc&limit=50');
+                
+                // Load recommendations (if exists)
+                try {
+                    state.recommendations = await supabaseFetch('recommendations', '?select=*&limit=10');
+                } catch (e) {
+                    state.recommendations = [];
+                }
+                
+                // Set default project
+                if (state.clients.length > 0 && !state.selectedProject) {
+                    const activeClients = state.clients.filter(c => c.status === 'active');
+                    state.selectedProject = activeClients[0]?.id || state.clients[0].id;
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+            }
+        }
+        
+        // === HELPERS ===
+        function getSelectedClient() {
+            return state.clients.find(c => c.id === state.selectedProject);
+        }
+        
+        function getClientPositions() {
+            return state.positions.filter(p => p.client_id === state.selectedProject);
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num?.toLocaleString('ru-RU') || '0';
+        }
+        
+        function getPositionClass(pos) {
+            if (pos <= 3) return 'top3';
+            if (pos <= 10) return 'top10';
+            if (pos <= 30) return 'top30';
+            return 'below';
+        }
+        
+        function getRandomGradient(index) {
+            const gradients = [
+                'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+                'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+                'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+            ];
+            return gradients[index % gradients.length];
+        }
+        
+        // === RENDER ===
+        function render() {
+            const app = document.getElementById('app');
+            const client = getSelectedClient();
+            const positions = getClientPositions();
             
-            <div class="nav-section">
-                <div class="nav-title">Поддержка</div>
-                <a href="https://t.me/artvision_support" class="nav-item" target="_blank">
-                    <span class="nav-icon">💬</span>
-                    <span>Telegram</span>
-                </a>
-                <a href="#" class="nav-item" onclick="closeMobileMenu()">
-                    <span class="nav-icon">❓</span>
-                    <span>Помощь</span>
-                </a>
-            </div>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <div class="user-card">
-                <div class="user-avatar">ТС</div>
-                <div>
-                    <div class="user-name">Творим Совершенство</div>
-                    <div class="user-role">Клиент</div>
-                </div>
-            </div>
-        </div>
-    </aside>
-    
-    <!-- Main -->
-    <main class="main">
-        <header class="page-header">
-            <div>
-                <h1 class="page-title">Добро пожаловать! 👋</h1>
-                <p class="page-subtitle">Творим Совершенство — декабрь 2025</p>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary">
-                    <span>📥</span> Скачать отчёт
-                </button>
-                <a href="https://t.me/artvision_support" class="btn btn-primary" target="_blank">
-                    <span>💬</span> Связаться
-                </a>
-            </div>
-        </header>
-        
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon blue">🎯</div>
-                    <div class="stat-trend up">↑ 12%</div>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">47</div>
-                    <div class="stat-label">Запросов в ТОП-10</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon green">👥</div>
-                    <div class="stat-trend up">↑ 23%</div>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">2,847</div>
-                    <div class="stat-label">Визитов за месяц</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon amber">📞</div>
-                    <div class="stat-trend up">↑ 8%</div>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">34</div>
-                    <div class="stat-label">Заявок с сайта</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon purple">💰</div>
-                    <div class="stat-trend">→</div>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">85K</div>
-                    <div class="stat-label">Бюджет / мес</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Content -->
-        <div class="content-grid">
-            <!-- Documents -->
-            <section class="section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <span>📄</span> Документы
-                    </h2>
-                    <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
-                        Все документы
-                    </button>
-                </div>
-                <div class="section-body">
-                    <div class="doc-list">
-                        <!-- Отчёт -->
-                        <div class="doc-item">
-                            <div class="doc-icon">📊</div>
-                            <div class="doc-info">
-                                <div class="doc-title">SEO-отчёт декабрь 2025</div>
-                                <div class="doc-meta">Ежемесячный отчёт • 20 дек</div>
-                            </div>
-                            <span class="status-badge status-ready">✓ Готов</span>
-                            <div class="doc-actions">
-                                <button class="icon-btn" title="Скачать">📥</button>
-                                <button class="icon-btn" title="Открыть">👁</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Счёт ожидает -->
-                        <div class="doc-item">
-                            <div class="doc-icon">📑</div>
-                            <div class="doc-info">
-                                <div class="doc-title">Счёт №127</div>
-                                <div class="doc-meta">Январь 2026 • 23 дек</div>
-                            </div>
-                            <div class="doc-amount">85 000 ₽</div>
-                            <span class="status-badge status-pending">⏳ Ожидает</span>
-                            <div class="doc-actions">
-                                <button class="icon-btn" title="Скачать">📥</button>
-                                <button class="icon-btn" title="Оплатить">💳</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Акт оплачен -->
-                        <div class="doc-item">
-                            <div class="doc-icon">✅</div>
-                            <div class="doc-info">
-                                <div class="doc-title">Акт №126</div>
-                                <div class="doc-meta">Декабрь 2025 • 15 дек</div>
-                            </div>
-                            <div class="doc-amount">85 000 ₽</div>
-                            <span class="status-badge status-paid">✓ Оплачен</span>
-                            <div class="doc-actions">
-                                <button class="icon-btn" title="Скачать">📥</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Счёт просрочен -->
-                        <div class="doc-item">
-                            <div class="doc-icon">📑</div>
-                            <div class="doc-info">
-                                <div class="doc-title">Счёт №125</div>
-                                <div class="doc-meta">Ноябрь 2025 • 1 ноя</div>
-                            </div>
-                            <div class="doc-amount">85 000 ₽</div>
-                            <span class="status-badge status-overdue">⚠ Просрочен</span>
-                            <div class="doc-actions">
-                                <button class="icon-btn" title="Скачать">📥</button>
-                                <button class="icon-btn" title="Оплатить">💳</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            // Calculate metrics
+            const totalShows = positions.reduce((sum, p) => sum + (p.impressions || 0), 0);
+            const totalClicks = positions.reduce((sum, p) => sum + (p.clicks || 0), 0);
+            const avgPosition = positions.length > 0 
+                ? (positions.reduce((sum, p) => sum + (p.position || 0), 0) / positions.length).toFixed(1)
+                : '—';
+            const avgCtr = totalShows > 0 ? ((totalClicks / totalShows) * 100).toFixed(1) : '0';
             
-            <!-- Right Column -->
-            <div>
-                <!-- Upsale -->
-                <div class="upsale-card">
-                    <div class="upsale-tag">💡 Рекомендация</div>
-                    <h3 class="upsale-title">12 запросов на пороге ТОП-10</h3>
-                    <p class="upsale-text">Добавьте 4 статьи в блог — прогноз роста трафика:</p>
-                    <div class="upsale-metric">
-                        <span class="upsale-number">+40%</span>
-                        <span class="upsale-label">трафика за 2 месяца</span>
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%;">
-                        Узнать подробнее →
-                    </button>
+            const activeClients = state.clients.filter(c => c.status === 'active');
+            const presaleClients = state.clients.filter(c => c.status === 'presale');
+            
+            app.innerHTML = `
+                <!-- Mobile Header -->
+                <div class="mobile-header">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="logo-text">Art<span>vision</span></div>
+                    <button class="mobile-menu-btn" onclick="refresh()">↻</button>
                 </div>
                 
-                <!-- Positions -->
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <span>🎯</span> ТОП запросы
-                        </h2>
+                <!-- Overlay -->
+                <div class="overlay ${state.sidebarOpen ? 'open' : ''}" onclick="toggleSidebar()"></div>
+                
+                <div class="app ${state.mode === 'agency' ? 'agency-mode' : ''}">
+                    <!-- Sidebar -->
+                    <aside class="sidebar ${state.sidebarOpen ? 'open' : ''}">
+                        <div class="sidebar-header">
+                            <div class="logo">A</div>
+                            <div class="logo-text">Art<span>vision</span></div>
+                        </div>
+                        
+                        <!-- Role Switcher -->
+                        <div class="role-switcher">
+                            <button class="role-btn ${state.mode === 'client' ? 'active' : ''}" onclick="setMode('client')">Клиент</button>
+                            <button class="role-btn ${state.mode === 'agency' ? 'active' : ''}" onclick="setMode('agency')">Агентство</button>
+                        </div>
+                        
+                        <!-- Project Selector (Client Mode) -->
+                        <div class="project-selector client-only">
+                            <select class="project-select" onchange="selectProject(this.value)">
+                                ${activeClients.map(c => `
+                                    <option value="${c.id}" ${c.id === state.selectedProject ? 'selected' : ''}>
+                                        ${c.name}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
+                        <!-- Navigation -->
+                        <nav class="nav">
+                            <div class="nav-section">
+                                <div class="nav-title">Меню</div>
+                                <div class="nav-item ${state.currentPage === 'dashboard' ? 'active' : ''}" onclick="setPage('dashboard')">
+                                    <span class="nav-icon">📊</span>
+                                    Дашборд
+                                </div>
+                                <div class="nav-item ${state.currentPage === 'positions' ? 'active' : ''}" onclick="setPage('positions')">
+                                    <span class="nav-icon">📈</span>
+                                    Позиции
+                                </div>
+                                <div class="nav-item ${state.currentPage === 'reports' ? 'active' : ''}" onclick="setPage('reports')">
+                                    <span class="nav-icon">📄</span>
+                                    Отчёты
+                                </div>
+                                <div class="nav-item client-only ${state.currentPage === 'documents' ? 'active' : ''}" onclick="setPage('documents')">
+                                    <span class="nav-icon">📁</span>
+                                    Документы
+                                    <span class="nav-badge">2</span>
+                                </div>
+                            </div>
+                            
+                            <div class="nav-section agency-only">
+                                <div class="nav-title">Агентство</div>
+                                <div class="nav-item ${state.currentPage === 'projects' ? 'active' : ''}" onclick="setPage('projects')">
+                                    <span class="nav-icon">🗂</span>
+                                    Все проекты
+                                </div>
+                                <div class="nav-item ${state.currentPage === 'finances' ? 'active' : ''}" onclick="setPage('finances')">
+                                    <span class="nav-icon">💰</span>
+                                    Финансы
+                                </div>
+                                <div class="nav-item ${state.currentPage === 'team' ? 'active' : ''}" onclick="setPage('team')">
+                                    <span class="nav-icon">👥</span>
+                                    Команда
+                                </div>
+                            </div>
+                        </nav>
+                        
+                        <!-- User -->
+                        <div class="sidebar-user">
+                            <div class="user-card">
+                                <div class="user-avatar">${state.telegramUser?.first_name?.[0] || 'K'}</div>
+                                <div class="user-info">
+                                    <div class="user-name">${state.telegramUser?.first_name || 'Кирилл'}</div>
+                                    <div class="user-role">${state.mode === 'agency' ? 'Агентство' : 'Клиент'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    
+                    <!-- Main Content -->
+                    <main class="main">
+                        ${renderPage(client, positions, totalShows, totalClicks, avgPosition, avgCtr, activeClients, presaleClients)}
+                    </main>
+                </div>
+                
+                <!-- Bottom Nav (Mobile) -->
+                <nav class="bottom-nav">
+                    <div class="bottom-nav-items">
+                        <div class="bottom-nav-item ${state.currentPage === 'dashboard' ? 'active' : ''}" onclick="setPage('dashboard')">
+                            <span class="bottom-nav-icon">📊</span>
+                            Дашборд
+                        </div>
+                        <div class="bottom-nav-item ${state.currentPage === 'positions' ? 'active' : ''}" onclick="setPage('positions')">
+                            <span class="bottom-nav-icon">📈</span>
+                            Позиции
+                        </div>
+                        <div class="bottom-nav-item ${state.currentPage === 'documents' ? 'active' : ''}" onclick="setPage('documents')">
+                            <span class="bottom-nav-icon">📁</span>
+                            Документы
+                        </div>
+                        <div class="bottom-nav-item" onclick="contactManager()">
+                            <span class="bottom-nav-icon">💬</span>
+                            Связь
+                        </div>
                     </div>
-                    <div class="section-body" style="padding-top: 12px;">
-                        <div class="position-item">
-                            <div>
-                                <div class="position-keyword">стоматология спб</div>
-                                <div class="position-freq">2 400 / мес</div>
-                            </div>
-                            <div class="position-rank">
-                                <span class="rank-number top3">3</span>
-                                <span class="rank-change up">↑2</span>
-                            </div>
-                        </div>
-                        <div class="position-item">
-                            <div>
-                                <div class="position-keyword">имплантация зубов цена</div>
-                                <div class="position-freq">1 800 / мес</div>
-                            </div>
-                            <div class="position-rank">
-                                <span class="rank-number top10">7</span>
-                                <span class="rank-change up">↑3</span>
-                            </div>
-                        </div>
-                        <div class="position-item">
-                            <div>
-                                <div class="position-keyword">виниры спб</div>
-                                <div class="position-freq">1 200 / мес</div>
-                            </div>
-                            <div class="position-rank">
-                                <span class="rank-number top3">2</span>
-                                <span class="rank-change up">↑1</span>
-                            </div>
-                        </div>
-                        <div class="position-item">
-                            <div>
-                                <div class="position-keyword">отбеливание зубов</div>
-                                <div class="position-freq">980 / мес</div>
-                            </div>
-                            <div class="position-rank">
-                                <span class="rank-number top10">9</span>
-                                <span class="rank-change down">↓1</span>
-                            </div>
-                        </div>
-                        <div class="position-item">
-                            <div>
-                                <div class="position-keyword">лечение кариеса</div>
-                                <div class="position-freq">850 / мес</div>
-                            </div>
-                            <div class="position-rank">
-                                <span class="rank-number top30">15</span>
-                                <span class="rank-change up">↑5</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
-    
-    <script>
-        function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
-        }
-        
-        function closeMobileMenu() {
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('overlay');
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
+                </nav>
+            `;
+            
+            // Init chart
+            if (state.currentPage === 'dashboard' || state.currentPage === 'positions') {
+                setTimeout(() => initChart(positions), 100);
             }
         }
         
-        // Close menu on resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                document.getElementById('sidebar').classList.remove('open');
-                document.getElementById('overlay').classList.remove('active');
-                document.body.style.overflow = '';
+        function renderPage(client, positions, totalShows, totalClicks, avgPosition, avgCtr, activeClients, presaleClients) {
+            switch (state.currentPage) {
+                case 'dashboard':
+                    return renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr);
+                case 'positions':
+                    return renderPositions(client, positions);
+                case 'documents':
+                    return renderDocuments(client);
+                case 'reports':
+                    return renderReports(client);
+                case 'projects':
+                    return renderProjects(activeClients, presaleClients);
+                case 'finances':
+                    return renderFinances(activeClients);
+                default:
+                    return renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr);
             }
-        });
+        }
         
-        // Escape key closes menu
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeMobileMenu();
-        });
+        function renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr) {
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">${client?.name || 'Дашборд'}</h1>
+                        <p class="page-subtitle">${client?.domain || 'Выберите проект'}</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="refresh()">↻ Обновить</button>
+                        <button class="btn btn-primary" onclick="contactManager()">💬 Написать</button>
+                    </div>
+                </div>
+                
+                <!-- Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card blue">
+                        <div class="metric-icon">👁</div>
+                        <div class="metric-label">Показы</div>
+                        <div class="metric-value">${formatNumber(totalShows)}</div>
+                        <div class="metric-change up">↑ 12%</div>
+                    </div>
+                    <div class="metric-card green">
+                        <div class="metric-icon">👆</div>
+                        <div class="metric-label">Клики</div>
+                        <div class="metric-value">${formatNumber(totalClicks)}</div>
+                        <div class="metric-change up">↑ 8%</div>
+                    </div>
+                    <div class="metric-card amber">
+                        <div class="metric-icon">📍</div>
+                        <div class="metric-label">Средняя позиция</div>
+                        <div class="metric-value">${avgPosition}</div>
+                        <div class="metric-change up">↑ 2.3</div>
+                    </div>
+                    <div class="metric-card purple">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-label">CTR</div>
+                        <div class="metric-value">${avgCtr}%</div>
+                        <div class="metric-change up">↑ 0.3%</div>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Динамика</h3>
+                            <div class="card-tabs">
+                                <button class="card-tab active" data-chart="shows">Показы</button>
+                                <button class="card-tab" data-chart="clicks">Клики</button>
+                                <button class="card-tab" data-chart="position">Позиция</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="mainChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">💡 Потенциал роста</h3>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            ${state.recommendations.length > 0 ? state.recommendations.slice(0, 4).map(rec => `
+                                <div class="recommendation-item">
+                                    <div class="rec-info">
+                                        <h4>${rec.cluster || rec.title}</h4>
+                                        <p>${rec.description || 'Рекомендация'}</p>
+                                    </div>
+                                    <div class="rec-potential">
+                                        <div class="rec-value">+${formatNumber(rec.potential || 0)}</div>
+                                        <div class="rec-label">показов</div>
+                                    </div>
+                                </div>
+                            `).join('') : `
+                                <div class="recommendation-item">
+                                    <div class="rec-info">
+                                        <h4>Анализируем данные</h4>
+                                        <p>Рекомендации появятся после сбора статистики</p>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top Queries -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">ТОП запросы</h3>
+                        <button class="btn btn-secondary" onclick="setPage('positions')">Все запросы →</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="queries-table">
+                            <div class="query-row header">
+                                <div>Запрос</div>
+                                <div style="text-align: right">Показы</div>
+                                <div style="text-align: right">Клики</div>
+                                <div style="text-align: right">CTR</div>
+                                <div style="text-align: center">Позиция</div>
+                            </div>
+                            ${positions.slice(0, 7).map(p => `
+                                <div class="query-row">
+                                    <div class="query-text">${p.query}</div>
+                                    <div class="query-value">${formatNumber(p.impressions)}</div>
+                                    <div class="query-value">${formatNumber(p.clicks)}</div>
+                                    <div class="query-value">${p.ctr?.toFixed(1) || '0'}%</div>
+                                    <div style="text-align: center">
+                                        <span class="position-badge ${getPositionClass(p.position)}">${p.position?.toFixed(0) || '—'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderPositions(client, positions) {
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Позиции</h1>
+                        <p class="page-subtitle">${client?.domain || ''} — ${positions.length} запросов</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Все запросы</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="queries-table">
+                            <div class="query-row header">
+                                <div>Запрос</div>
+                                <div style="text-align: right">Показы</div>
+                                <div style="text-align: right">Клики</div>
+                                <div style="text-align: right">CTR</div>
+                                <div style="text-align: center">Позиция</div>
+                            </div>
+                            ${positions.map(p => `
+                                <div class="query-row">
+                                    <div class="query-text">${p.query}</div>
+                                    <div class="query-value">${formatNumber(p.impressions)}</div>
+                                    <div class="query-value">${formatNumber(p.clicks)}</div>
+                                    <div class="query-value">${p.ctr?.toFixed(1) || '0'}%</div>
+                                    <div style="text-align: center">
+                                        <span class="position-badge ${getPositionClass(p.position)}">${p.position?.toFixed(0) || '—'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderDocuments(client) {
+            const documents = [
+                { name: 'Счёт №127 — Декабрь 2025', type: 'invoice', date: '25.12.2025', status: 'pending', statusText: 'Ожидает' },
+                { name: 'Акт №126 — Ноябрь 2025', type: 'pdf', date: '30.11.2025', status: 'paid', statusText: 'Оплачен' },
+                { name: 'Отчёт SEO — Ноябрь 2025', type: 'report', date: '28.11.2025', status: 'paid', statusText: 'Готов' },
+                { name: 'Счёт №126 — Ноябрь 2025', type: 'invoice', date: '25.11.2025', status: 'paid', statusText: 'Оплачен' },
+                { name: 'Договор на SEO-продвижение', type: 'pdf', date: '01.09.2025', status: 'paid', statusText: 'Подписан' }
+            ];
+            
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Документы</h1>
+                        <p class="page-subtitle">Счета, акты и отчёты</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Все документы</h3>
+                    </div>
+                    <div class="documents-list">
+                        ${documents.map(doc => `
+                            <div class="doc-item">
+                                <div class="doc-icon ${doc.type}">
+                                    ${doc.type === 'invoice' ? '💳' : doc.type === 'report' ? '📊' : '📄'}
+                                </div>
+                                <div class="doc-info">
+                                    <div class="doc-name">${doc.name}</div>
+                                    <div class="doc-meta">${doc.date}</div>
+                                </div>
+                                <span class="doc-status ${doc.status}">${doc.statusText}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderReports(client) {
+            const reports = [
+                { name: 'SEO-отчёт — Декабрь 2025', date: '28.12.2025', status: 'В работе' },
+                { name: 'SEO-отчёт — Ноябрь 2025', date: '28.11.2025', status: 'Готов' },
+                { name: 'SEO-отчёт — Октябрь 2025', date: '28.10.2025', status: 'Готов' }
+            ];
+            
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Отчёты</h1>
+                        <p class="page-subtitle">Ежемесячные SEO-отчёты</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="documents-list" style="padding-top: 20px;">
+                        ${reports.map(r => `
+                            <div class="doc-item">
+                                <div class="doc-icon report">📊</div>
+                                <div class="doc-info">
+                                    <div class="doc-name">${r.name}</div>
+                                    <div class="doc-meta">${r.date}</div>
+                                </div>
+                                <span class="doc-status ${r.status === 'Готов' ? 'paid' : 'pending'}">${r.status}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderProjects(activeClients, presaleClients) {
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Все проекты</h1>
+                        <p class="page-subtitle">${activeClients.length} активных, ${presaleClients.length} presale</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Активные клиенты</h3>
+                <div class="projects-grid">
+                    ${activeClients.map((c, i) => {
+                        const clientPositions = state.positions.filter(p => p.client_id === c.id);
+                        const shows = clientPositions.reduce((sum, p) => sum + (p.impressions || 0), 0);
+                        const clicks = clientPositions.reduce((sum, p) => sum + (p.clicks || 0), 0);
+                        return `
+                            <div class="project-card" onclick="selectProject('${c.id}'); setMode('client'); setPage('dashboard');">
+                                <div class="project-header">
+                                    <div class="project-logo" style="background: ${getRandomGradient(i)}">${c.name[0]}</div>
+                                    <div>
+                                        <div class="project-name">${c.name}</div>
+                                        <div class="project-domain">${c.domain}</div>
+                                    </div>
+                                </div>
+                                <div class="project-metrics">
+                                    <div class="project-metric">
+                                        <div class="project-metric-value">${formatNumber(shows)}</div>
+                                        <div class="project-metric-label">Показы</div>
+                                    </div>
+                                    <div class="project-metric">
+                                        <div class="project-metric-value">${formatNumber(clicks)}</div>
+                                        <div class="project-metric-label">Клики</div>
+                                    </div>
+                                </div>
+                                <span class="project-status active">Активный</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                ${presaleClients.length > 0 ? `
+                    <h3 style="margin: 28px 0 16px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Presale</h3>
+                    <div class="projects-grid">
+                        ${presaleClients.map((c, i) => `
+                            <div class="project-card">
+                                <div class="project-header">
+                                    <div class="project-logo" style="background: ${getRandomGradient(i + 5)}">${c.name[0]}</div>
+                                    <div>
+                                        <div class="project-name">${c.name}</div>
+                                        <div class="project-domain">${c.domain}</div>
+                                    </div>
+                                </div>
+                                <span class="project-status presale">Presale</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        function renderFinances(activeClients) {
+            const totalMRR = 1200000;
+            return `
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Финансы</h1>
+                        <p class="page-subtitle">Декабрь 2025</p>
+                    </div>
+                </div>
+                
+                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="metric-card green">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-label">MRR</div>
+                        <div class="metric-value">${formatNumber(totalMRR)} ₽</div>
+                    </div>
+                    <div class="metric-card blue">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-label">Проектов</div>
+                        <div class="metric-value">${activeClients.length}</div>
+                    </div>
+                    <div class="metric-card amber">
+                        <div class="metric-icon">📈</div>
+                        <div class="metric-label">Средний чек</div>
+                        <div class="metric-value">${formatNumber(Math.round(totalMRR / activeClients.length))} ₽</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Доходы по проектам</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // === CHART ===
+        function initChart(positions) {
+            const ctx = document.getElementById('mainChart');
+            if (!ctx) return;
+            
+            // Generate demo data
+            const labels = ['Нояб', 'Дек 1', 'Дек 8', 'Дек 15', 'Дек 22', 'Дек 28'];
+            const showsData = [12500, 13200, 14100, 13800, 15200, 16500];
+            const clicksData = [320, 380, 410, 395, 480, 520];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Показы',
+                        data: showsData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // === ACTIONS ===
+        function setMode(mode) {
+            state.mode = mode;
+            if (mode === 'agency') {
+                state.currentPage = 'projects';
+            } else {
+                state.currentPage = 'dashboard';
+            }
+            render();
+        }
+        
+        function setPage(page) {
+            state.currentPage = page;
+            state.sidebarOpen = false;
+            render();
+        }
+        
+        function selectProject(id) {
+            state.selectedProject = id;
+            render();
+        }
+        
+        function toggleSidebar() {
+            state.sidebarOpen = !state.sidebarOpen;
+            render();
+        }
+        
+        async function refresh() {
+            await loadData();
+            render();
+        }
+        
+        function contactManager() {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(CONFIG.MANAGER_LINK);
+            } else {
+                window.open(CONFIG.MANAGER_LINK, '_blank');
+            }
+        }
+        
+        // === START ===
+        init();
     </script>
 </body>
 </html>
