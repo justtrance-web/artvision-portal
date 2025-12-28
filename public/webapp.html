@@ -1,1636 +1,951 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Artvision Portal</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-primary: #0a0f1a;
-            --bg-secondary: #111827;
-            --bg-card: #1a2332;
-            --bg-card-hover: #222d3f;
-            --bg-input: #0d1320;
-            
-            --accent-blue: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-purple: #8b5cf6;
-            
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            
-            --border: #1e293b;
-            --border-light: #334155;
-            
-            --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-            --gradient-green: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-            
-            --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
-            --radius: 12px;
-            --radius-lg: 20px;
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Manrope', -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.5;
-        }
-        
-        /* === LAYOUT === */
-        .app {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        /* === SIDEBAR === */
-        .sidebar {
-            width: 260px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-        
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 24px;
-        }
-        
-        .logo {
-            width: 44px;
-            height: 44px;
-            background: var(--gradient-blue);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 18px;
-            box-shadow: var(--shadow-glow);
-        }
-        
-        .logo-text {
-            font-weight: 700;
-            font-size: 18px;
-            letter-spacing: -0.02em;
-        }
-        
-        .logo-text span {
-            color: var(--accent-cyan);
-        }
-        
-        /* Role Switcher */
-        .role-switcher {
-            display: flex;
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 4px;
-            margin-bottom: 20px;
-        }
-        
-        .role-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        
-        .role-btn.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-        
-        /* Project Selector */
-        .project-selector {
-            margin-bottom: 20px;
-        }
-        
-        .project-select {
-            width: 100%;
-            padding: 12px 14px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%2394a3b8'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-        }
-        
-        .project-select:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-        
-        /* Nav */
-        .nav {
-            flex: 1;
-        }
-        
-        .nav-section {
-            margin-bottom: 24px;
-        }
-        
-        .nav-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 8px;
-            padding: 0 12px;
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            border-radius: 10px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.15s;
-            cursor: pointer;
-            margin-bottom: 4px;
-        }
-        
-        .nav-item:hover {
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        
-        .nav-item.active {
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-        }
-        
-        .nav-icon {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .nav-badge {
-            margin-left: auto;
-            background: var(--accent-red);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
-        
-        /* User */
-        .sidebar-user {
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-        
-        .user-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            background: var(--bg-card);
-            border-radius: 10px;
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--gradient-purple);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-        
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .user-role {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        
-        /* === MAIN CONTENT === */
-        .main {
-            flex: 1;
-            margin-left: 260px;
-            padding: 24px 32px;
-            min-width: 0;
-        }
-        
-        /* Page Header */
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 28px;
-        }
-        
-        .page-title {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-        
-        .page-subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.15s;
-            border: none;
-            font-family: inherit;
-        }
-        
-        .btn-primary {
-            background: var(--gradient-blue);
-            color: white;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--bg-card-hover);
-        }
-        
-        /* === METRICS GRID === */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 28px;
-        }
-        
-        .metric-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-        }
-        
-        .metric-card.blue::before { background: var(--gradient-blue); }
-        .metric-card.green::before { background: var(--accent-green); }
-        .metric-card.amber::before { background: var(--accent-amber); }
-        .metric-card.purple::before { background: var(--gradient-purple); }
-        
-        .metric-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 14px;
-        }
-        
-        .metric-card.blue .metric-icon { background: rgba(59, 130, 246, 0.15); }
-        .metric-card.green .metric-icon { background: rgba(16, 185, 129, 0.15); }
-        .metric-card.amber .metric-icon { background: rgba(245, 158, 11, 0.15); }
-        .metric-card.purple .metric-icon { background: rgba(139, 92, 246, 0.15); }
-        
-        .metric-label {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        
-        .metric-value {
-            font-size: 28px;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: -0.02em;
-        }
-        
-        .metric-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 8px;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-        
-        .metric-change.up {
-            color: var(--accent-green);
-            background: rgba(16, 185, 129, 0.1);
-        }
-        
-        .metric-change.down {
-            color: var(--accent-red);
-            background: rgba(239, 68, 68, 0.1);
-        }
-        
-        /* === CONTENT GRID === */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-            margin-bottom: 28px;
-        }
-        
-        /* Card */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-        
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 18px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        
-        .card-tabs {
-            display: flex;
-            gap: 4px;
-            background: var(--bg-input);
-            padding: 4px;
-            border-radius: 8px;
-        }
-        
-        .card-tab {
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-family: inherit;
-        }
-        
-        .card-tab.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-        
-        .card-body {
-            padding: 20px;
-        }
-        
-        /* Chart */
-        .chart-container {
-            height: 280px;
-            position: relative;
-        }
-        
-        /* === QUERIES TABLE === */
-        .queries-table {
-            width: 100%;
-        }
-        
-        .query-row {
-            display: grid;
-            grid-template-columns: 1fr 80px 80px 80px 100px;
-            gap: 12px;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border);
-            align-items: center;
-        }
-        
-        .query-row:last-child {
-            border-bottom: none;
-        }
-        
-        .query-row.header {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .query-text {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .query-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            text-align: right;
-        }
-        
-        .position-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        
-        .position-badge.top3 {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
-        }
-        
-        .position-badge.top10 {
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-        }
-        
-        .position-badge.top30 {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--accent-amber);
-        }
-        
-        .position-badge.below {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--accent-red);
-        }
-        
-        /* === RECOMMENDATIONS === */
-        .recommendation-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .recommendation-item:last-child {
-            border-bottom: none;
-        }
-        
-        .rec-info h4 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .rec-info p {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        
-        .rec-potential {
-            text-align: right;
-        }
-        
-        .rec-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--accent-green);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        
-        .rec-label {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        
-        /* === DOCUMENTS LIST === */
-        .documents-list {
-            padding: 0 20px 20px;
-        }
-        
-        .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px;
-            background: var(--bg-input);
-            border-radius: 10px;
-            margin-bottom: 10px;
-            transition: background 0.15s;
-            cursor: pointer;
-        }
-        
-        .doc-item:hover {
-            background: var(--bg-card-hover);
-        }
-        
-        .doc-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        
-        .doc-icon.pdf { background: rgba(239, 68, 68, 0.15); }
-        .doc-icon.invoice { background: rgba(16, 185, 129, 0.15); }
-        .doc-icon.report { background: rgba(59, 130, 246, 0.15); }
-        
-        .doc-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .doc-name {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .doc-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        
-        .doc-status {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
-        
-        .doc-status.paid {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
-        }
-        
-        .doc-status.pending {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--accent-amber);
-        }
-        
-        /* === AGENCY SECTION === */
-        .agency-only {
-            display: none;
-        }
-        
-        .app.agency-mode .agency-only {
-            display: block;
-        }
-        
-        .app.agency-mode .client-only {
-            display: none;
-        }
-        
-        /* Projects Grid */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 28px;
-        }
-        
-        .project-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .project-card:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-2px);
-        }
-        
-        .project-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-        
-        .project-logo {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 16px;
-        }
-        
-        .project-name {
-            font-weight: 700;
-            font-size: 15px;
-        }
-        
-        .project-domain {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        
-        .project-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        
-        .project-metric {
-            text-align: center;
-            padding: 10px;
-            background: var(--bg-input);
-            border-radius: 8px;
-        }
-        
-        .project-metric-value {
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        
-        .project-metric-label {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        
-        .project-status {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 6px;
-            margin-top: 12px;
-        }
-        
-        .project-status.active {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
-        }
-        
-        .project-status.presale {
-            background: rgba(139, 92, 246, 0.15);
-            color: var(--accent-purple);
-        }
-        
-        /* === MOBILE === */
-        .mobile-header {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 0 16px;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 200;
-        }
-        
-        .mobile-menu-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--bg-card);
-            border: none;
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 90;
-        }
-        
-        /* Bottom Nav */
-        .bottom-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
-            z-index: 100;
-        }
-        
-        .bottom-nav-items {
-            display: flex;
-            justify-content: space-around;
-        }
-        
-        .bottom-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 16px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 11px;
-            font-weight: 500;
-            border-radius: 10px;
-            transition: all 0.15s;
-            cursor: pointer;
-        }
-        
-        .bottom-nav-item.active {
-            color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.1);
-        }
-        
-        .bottom-nav-icon {
-            font-size: 22px;
-        }
-        
-        @media (max-width: 1024px) {
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .projects-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .overlay.open {
-                display: block;
-            }
-            
-            .main {
-                margin-left: 0;
-                padding: 80px 16px 100px;
-            }
-            
-            .mobile-header {
-                display: flex;
-            }
-            
-            .bottom-nav {
-                display: block;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            
-            .metric-card {
-                padding: 16px;
-            }
-            
-            .metric-value {
-                font-size: 22px;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-            
-            .page-title {
-                font-size: 22px;
-            }
-            
-            .query-row {
-                grid-template-columns: 1fr 60px 70px;
-            }
-            
-            .query-row .query-value:nth-child(3),
-            .query-row .query-value:nth-child(4) {
-                display: none;
-            }
-        }
-        
-        /* Loading */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            flex-direction: column;
-            gap: 16px;
-        }
-        
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Artvision Portal</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.5);
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --danger: #f87171;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f23 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+      padding-bottom: 160px;
+    }
+    
+    /* === HEADER === */
+    .header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: rgba(26, 26, 46, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .client-name { font-size: 18px; font-weight: 600; }
+    .client-domain { font-size: 14px; color: var(--text-secondary); margin-top: 2px; }
+    
+    .refresh-btn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      opacity: 0.6;
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .refresh-btn:active { background: var(--bg-card); transform: scale(0.95); }
+    .refresh-btn.loading { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === CONTENT === */
+    .content { padding: 0 16px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* === STATS === */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    
+    .stat-label { font-size: 15px; color: var(--text-secondary); margin-bottom: 8px; }
+    .stat-value { font-size: 36px; font-weight: 700; letter-spacing: -1px; }
+    
+    .stat-change {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--danger); }
+    .stat-change svg { width: 14px; height: 14px; }
+
+    /* === POSITION CARD === */
+    .position-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    
+    .position-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .position-label { font-size: 15px; color: var(--text-secondary); }
+    .position-value { font-size: 42px; font-weight: 700; letter-spacing: -1px; }
+    
+    .chart-container { height: 120px; margin-top: 16px; }
+    .chart-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; color: var(--text-secondary); }
+
+    /* === QUERIES === */
+    .queries-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    
+    .queries-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .queries-title { font-size: 18px; font-weight: 600; }
+    .queries-all { font-size: 15px; color: var(--accent-light); text-decoration: none; }
+    
+    .query-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .query-item:last-child { border-bottom: none; padding-bottom: 0; }
+    
+    .query-position {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(96, 165, 250, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-light);
+      flex-shrink: 0;
+    }
+    .query-position.top10 { background: rgba(74, 222, 128, 0.15); color: var(--success); }
+    .query-position.top20 { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .query-position.below { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    
+    .query-info { flex: 1; min-width: 0; }
+    .query-text { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .query-stats { font-size: 14px; color: var(--text-secondary); margin-top: 3px; }
+    
+    .query-change { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 2px; }
+    .query-change.up { color: var(--success); }
+    .query-change.down { color: var(--danger); }
+
+    /* === REPORTS === */
+    .report-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    
+    .report-icon { font-size: 32px; }
+    .report-info { flex: 1; }
+    .report-title { font-size: 16px; font-weight: 600; }
+    .report-date { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .report-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* === TIPS === */
+    .tip-card {
+      background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.15) 100%);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    
+    .tip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .tip-icon { font-size: 24px; }
+    .tip-title { font-size: 16px; font-weight: 600; }
+    .tip-text { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+    .tip-action {
+      margin-top: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    /* === DOCUMENTS (клиентский кабинет) === */
+    .doc-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .doc-icon { font-size: 28px; }
+    .doc-info { flex: 1; }
+    .doc-title { font-size: 15px; font-weight: 600; }
+    .doc-meta { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .doc-status { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+    .doc-status.paid { background: rgba(74,222,128,0.15); color: var(--success); }
+    .doc-status.pending { background: rgba(251,191,36,0.15); color: var(--warning); }
+
+    /* === AGENCY: Projects Grid === */
+    .projects-grid { display: grid; gap: 12px; margin-top: 16px; }
+    
+    .project-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    
+    .project-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .project-avatar { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .project-name { font-size: 16px; font-weight: 600; }
+    .project-domain { font-size: 13px; color: var(--text-secondary); }
+    
+    .project-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .project-stat { text-align: center; }
+    .project-stat-value { font-size: 18px; font-weight: 700; }
+    .project-stat-label { font-size: 11px; color: var(--text-secondary); }
+
+    /* === AGENCY: Presale Pipeline === */
+    .pipeline-stage { margin-bottom: 20px; }
+    .stage-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .stage-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .stage-name { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+    .stage-count { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+    
+    .lead-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+    .lead-name { font-size: 15px; font-weight: 600; }
+    .lead-info { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .lead-value { font-size: 14px; font-weight: 600; color: var(--success); margin-top: 6px; }
+
+    /* === TAB BAR === */
+    .tab-bar {
+      position: fixed;
+      bottom: 70px;
+      left: 0;
+      right: 0;
+      background: rgba(15, 15, 35, 0.98);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 12px;
+      z-index: 100;
+    }
+    
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .tab-item.active { color: var(--accent-light); }
+    .tab-item svg { width: 24px; height: 24px; }
+
+    /* === CTA BUTTON === */
+    .cta-wrap {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 24px;
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 15, 35, 0.98) 30%);
+      z-index: 100;
+    }
+    
+    .cta-btn {
+      width: 100%;
+      height: 54px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+      border: none;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+      transition: transform 0.2s;
+    }
+    .cta-btn:active { transform: scale(0.98); }
+
+    /* === ROLE SWITCHER === */
+    .role-switcher {
+      display: flex;
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 4px;
+      margin: 16px 0;
+      border: 1px solid var(--border);
+    }
+    .role-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* === SECTION TITLE === */
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 20px 0 12px;
+    }
+
+    /* === EMPTY STATE === */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state-text { font-size: 15px; }
+  </style>
 </head>
 <body>
-    <div id="app">
-        <div class="loading">
-            <div class="spinner"></div>
-            <p style="color: var(--text-muted);">Загрузка данных...</p>
-        </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="avatar" id="avatar">A</div>
+      <div>
+        <div class="client-name" id="clientName">Загрузка...</div>
+        <div class="client-domain" id="clientDomain"></div>
+      </div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="refresh()">↻</button>
+  </header>
+
+  <div class="content">
+    
+    <!-- Role Switcher (только для агентства) -->
+    <div class="role-switcher" id="roleSwitcher" style="display:none;">
+      <button class="role-btn active" onclick="setRole('client')">👤 Клиент</button>
+      <button class="role-btn" onclick="setRole('agency')">🏢 Агентство</button>
     </div>
 
-    <script>
-        // === CONFIG ===
-        const CONFIG = {
-            SUPABASE_URL: 'https://gjwdlbwznkwjghquhhyz.supabase.co',
-            SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqd2RsYnd6bmt3amdocXVoaHl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTEzNjksImV4cCI6MjA4MjAyNzM2OX0.pQTxrgsKygh3S83AvVv9Lg0KgebXBwKbD5ID-gsmdDI',
-            MANAGER_LINK: 'https://t.me/avpro_ru'
-        };
-        
-        // === STATE ===
-        let state = {
-            mode: 'client', // client | agency
-            currentPage: 'dashboard',
-            selectedProject: null,
-            clients: [],
-            positions: [],
-            recommendations: [],
-            telegramUser: null,
-            sidebarOpen: false
-        };
-        
-        // === INIT ===
-        async function init() {
-            // Telegram Web App
-            if (window.Telegram?.WebApp) {
-                const tg = window.Telegram.WebApp;
-                tg.ready();
-                tg.expand();
-                state.telegramUser = tg.initDataUnsafe?.user;
-                
-                tg.MainButton.setText('💬 Написать менеджеру');
-                tg.MainButton.show();
-                tg.MainButton.onClick(() => tg.openTelegramLink(CONFIG.MANAGER_LINK));
-            }
-            
-            // Load data
-            await loadData();
-            render();
+    <!-- ========== CLIENT PAGES ========== -->
+    
+    <!-- PAGE: Overview -->
+    <div class="page active" id="page-overview">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Показы</div>
+          <div class="stat-value" id="statShows">—</div>
+          <div class="stat-change up" id="changeShows">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+            <span>—</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Клики</div>
+          <div class="stat-value" id="statClicks">—</div>
+          <div class="stat-change up" id="changeClicks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+            <span>—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="position-card">
+        <div class="position-header">
+          <div>
+            <div class="position-label">Средняя позиция</div>
+            <div class="position-value" id="statPosition">—</div>
+          </div>
+          <div class="stat-change up" id="changePosition">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:14px;height:14px"><path d="M18 15l-6-6-6 6"/></svg>
+            <span>—</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="positionsChart"></canvas>
+        </div>
+        <div class="chart-labels">
+          <span>Неделя назад</span>
+          <span>Сегодня</span>
+        </div>
+      </div>
+
+      <div class="queries-card">
+        <div class="queries-header">
+          <div class="queries-title">Топ запросы</div>
+          <a href="#" class="queries-all" onclick="setTab('positions'); return false;">Все ↗</a>
+        </div>
+        <div id="topQueries"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: Positions -->
+    <div class="page" id="page-positions">
+      <div class="section-title">Все запросы</div>
+      <div id="allQueries"></div>
+    </div>
+
+    <!-- PAGE: Reports -->
+    <div class="page" id="page-reports">
+      <div class="section-title">Отчёты</div>
+      <div id="reportsList"></div>
+      
+      <div class="section-title">Документы</div>
+      <div id="docsList"></div>
+    </div>
+
+    <!-- PAGE: Tips -->
+    <div class="page" id="page-tips">
+      <div class="section-title">Рекомендации по росту</div>
+      <div id="tipsList"></div>
+    </div>
+
+    <!-- ========== AGENCY PAGES ========== -->
+    
+    <!-- PAGE: Projects -->
+    <div class="page" id="page-projects">
+      <div class="section-title">Активные проекты</div>
+      <div class="projects-grid" id="activeProjects"></div>
+      
+      <div class="section-title">Presale</div>
+      <div class="projects-grid" id="presaleProjects"></div>
+    </div>
+
+    <!-- PAGE: Finances -->
+    <div class="page" id="page-finances">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">MRR</div>
+          <div class="stat-value" id="statMRR">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Проектов</div>
+          <div class="stat-value" id="statProjectsCount">—</div>
+        </div>
+      </div>
+      <div class="position-card">
+        <div class="position-label">Доход по проектам</div>
+        <div class="chart-container">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Pipeline -->
+    <div class="page" id="page-pipeline">
+      <div class="section-title">Воронка продаж</div>
+      <div id="pipelineStages"></div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar" id="tabBar">
+    <!-- Tabs will be rendered by JS -->
+  </nav>
+
+  <!-- CTA BUTTON -->
+  <div class="cta-wrap">
+    <button class="cta-btn" onclick="openChat()">
+      💬 Написать менеджеру
+    </button>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    const SUPABASE_URL = 'https://gjwdlbwznkwjghquhhyz.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqd2RsYnd6bmt3amdocXVoaHl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTEzNjksImV4cCI6MjA4MjAyNzM2OX0.pQTxrgsKygh3S83AvVv9Lg0KgebXBwKbD5ID-gsmdDI';
+    
+    const AGENCY_USERS = ['antonkamer', 'PandaCaffe', 'mig555555', 'akpersik'];
+    
+    // === STATE ===
+    let state = {
+      role: 'client', // 'client' or 'agency'
+      currentTab: 'overview',
+      isAgencyUser: false,
+      client: null,
+      data: null,
+      loading: true
+    };
+
+    // === TELEGRAM ===
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      
+      const user = tg.initDataUnsafe?.user;
+      if (user && AGENCY_USERS.includes(user.username)) {
+        state.isAgencyUser = true;
+        state.role = 'agency';
+      }
+    }
+
+    // === TABS CONFIG ===
+    const CLIENT_TABS = [
+      { id: 'overview', icon: 'chart', label: 'Обзор' },
+      { id: 'positions', icon: 'trend', label: 'Позиции' },
+      { id: 'reports', icon: 'doc', label: 'Отчёты' },
+      { id: 'tips', icon: 'bulb', label: 'Советы' }
+    ];
+    
+    const AGENCY_TABS = [
+      { id: 'projects', icon: 'grid', label: 'Проекты' },
+      { id: 'finances', icon: 'money', label: 'Финансы' },
+      { id: 'pipeline', icon: 'funnel', label: 'Presale' }
+    ];
+
+    // === ICONS ===
+    const ICONS = {
+      chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>',
+      trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>',
+      doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>',
+      bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21h6M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3z"/></svg>',
+      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8M8 14h8"/></svg>',
+      funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2V12L3 4z"/></svg>'
+    };
+
+    // === DEMO DATA ===
+    const DEMO_DATA = {
+      client: {
+        name: "Творим Совершенство",
+        domain: "tvorimsovershenstvo.ru",
+        avatar: "ТС"
+      },
+      stats: {
+        shows: { value: 1247, change: 23 },
+        clicks: { value: 89, change: 15 },
+        position: { value: 12.4, change: 8 }
+      },
+      positions: [14, 13, 12, 11, 12, 13, 12],
+      queries: [
+        { q: "стоматология спб", pos: 8, shows: 234, clicks: 18, change: 2 },
+        { q: "имплантация зубов", pos: 12, shows: 189, clicks: 14, change: 4 },
+        { q: "виниры цена спб", pos: 15, shows: 156, clicks: 11, change: -1 },
+        { q: "отбеливание зубов", pos: 18, shows: 132, clicks: 9, change: 3 },
+        { q: "лечение кариеса спб", pos: 22, shows: 98, clicks: 6, change: -2 }
+      ],
+      reports: [
+        { title: "SEO отчёт — Декабрь", date: "25.12.2024", type: "seo" },
+        { title: "Контент-план Q1 2025", date: "20.12.2024", type: "plan" }
+      ],
+      docs: [
+        { title: "Счёт #2024-089", amount: "45 000 ₽", status: "pending" },
+        { title: "Акт #2024-088", amount: "45 000 ₽", status: "paid" }
+      ],
+      tips: [
+        { title: "Добавить страницу услуги", text: "Создайте страницу «Лечение пульпита» — потенциал 120 показов/мес", priority: "high" },
+        { title: "Оптимизировать Title", text: "На странице /implantation Title слишком длинный, рекомендуем сократить до 60 символов", priority: "medium" }
+      ],
+      projects: [
+        { name: "Творим Совершенство", domain: "tvorimsovershenstvo.ru", color: "#667eea", top10: 45, shows: 1247, clicks: 89, mrr: 45000 },
+        { name: "Atribeaute", domain: "atribeaute.ru", color: "#10b981", top10: 156, shows: 8400, clicks: 312, mrr: 80000 },
+        { name: "ANT Partners", domain: "ant-partners.ru", color: "#f59e0b", top10: 78, shows: 3200, clicks: 156, mrr: 35000 },
+        { name: "VLPco", domain: "vlpco.ru", color: "#ec4899", top10: 92, shows: 4100, clicks: 198, mrr: 55000 },
+        { name: "Бурение СКВ", domain: "burenie-skv.ru", color: "#06b6d4", top10: 34, shows: 980, clicks: 67, mrr: 25000 }
+      ],
+      presale: [
+        { name: "МедЦентр Здоровье", industry: "Медицина", value: "60 000 ₽/мес", stage: "proposal" },
+        { name: "АвтоТрейд", industry: "Авто", value: "45 000 ₽/мес", stage: "meeting" },
+        { name: "СтройМастер", industry: "Строительство", value: "35 000 ₽/мес", stage: "cold" }
+      ]
+    };
+
+    // === RENDER FUNCTIONS ===
+    function renderTabs() {
+      const tabs = state.role === 'agency' ? AGENCY_TABS : CLIENT_TABS;
+      const tabBar = document.getElementById('tabBar');
+      
+      tabBar.innerHTML = tabs.map(tab => `
+        <button class="tab-item ${state.currentTab === tab.id ? 'active' : ''}" onclick="setTab('${tab.id}')">
+          ${ICONS[tab.icon]}
+          <span>${tab.label}</span>
+        </button>
+      `).join('');
+    }
+
+    function renderHeader() {
+      const data = DEMO_DATA;
+      document.getElementById('clientName').textContent = state.role === 'agency' ? 'Artvision Agency' : data.client.name;
+      document.getElementById('clientDomain').textContent = state.role === 'agency' ? '9 проектов' : data.client.domain;
+      document.getElementById('avatar').textContent = state.role === 'agency' ? 'AV' : data.client.avatar[0];
+      
+      // Show role switcher for agency users
+      document.getElementById('roleSwitcher').style.display = state.isAgencyUser ? 'flex' : 'none';
+    }
+
+    function renderOverview() {
+      const d = DEMO_DATA;
+      
+      // Stats
+      document.getElementById('statShows').textContent = d.stats.shows.value.toLocaleString();
+      document.getElementById('statClicks').textContent = d.stats.clicks.value.toLocaleString();
+      document.getElementById('statPosition').textContent = d.stats.position.value;
+      
+      document.querySelector('#changeShows span').textContent = d.stats.shows.change + '%';
+      document.querySelector('#changeClicks span').textContent = d.stats.clicks.change + '%';
+      document.querySelector('#changePosition span').textContent = d.stats.position.change + '%';
+      
+      // Top Queries
+      document.getElementById('topQueries').innerHTML = d.queries.slice(0, 3).map(q => renderQueryItem(q)).join('');
+      
+      // Chart
+      renderPositionsChart(d.positions);
+    }
+
+    function renderQueryItem(q) {
+      const posClass = q.pos <= 10 ? 'top10' : q.pos <= 20 ? 'top20' : 'below';
+      const changeClass = q.change >= 0 ? 'up' : 'down';
+      const changeIcon = q.change >= 0 
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M18 15l-6-6-6 6"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg>';
+      
+      return `
+        <div class="query-item">
+          <div class="query-position ${posClass}">${q.pos}</div>
+          <div class="query-info">
+            <div class="query-text">${q.q}</div>
+            <div class="query-stats">${q.shows} пок · ${q.clicks} кл</div>
+          </div>
+          <div class="query-change ${changeClass}">
+            ${changeIcon}
+            ${Math.abs(q.change)}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPositions() {
+      document.getElementById('allQueries').innerHTML = DEMO_DATA.queries.map(q => renderQueryItem(q)).join('');
+    }
+
+    function renderReports() {
+      const d = DEMO_DATA;
+      
+      document.getElementById('reportsList').innerHTML = d.reports.map(r => `
+        <div class="report-item">
+          <div class="report-icon">${r.type === 'seo' ? '📊' : '📋'}</div>
+          <div class="report-info">
+            <div class="report-title">${r.title}</div>
+            <div class="report-date">${r.date}</div>
+          </div>
+          <button class="report-btn">Открыть</button>
+        </div>
+      `).join('');
+      
+      document.getElementById('docsList').innerHTML = d.docs.map(doc => `
+        <div class="doc-item">
+          <div class="doc-icon">${doc.status === 'paid' ? '✅' : '📄'}</div>
+          <div class="doc-info">
+            <div class="doc-title">${doc.title}</div>
+            <div class="doc-meta">${doc.amount}</div>
+          </div>
+          <div class="doc-status ${doc.status}">${doc.status === 'paid' ? 'Оплачен' : 'Ожидает'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderTips() {
+      document.getElementById('tipsList').innerHTML = DEMO_DATA.tips.map(tip => `
+        <div class="tip-card">
+          <div class="tip-header">
+            <div class="tip-icon">${tip.priority === 'high' ? '🔥' : '💡'}</div>
+            <div class="tip-title">${tip.title}</div>
+          </div>
+          <div class="tip-text">${tip.text}</div>
+          <button class="tip-action">Подробнее</button>
+        </div>
+      `).join('');
+    }
+
+    function renderProjects() {
+      const d = DEMO_DATA;
+      
+      document.getElementById('activeProjects').innerHTML = d.projects.map(p => `
+        <div class="project-card">
+          <div class="project-header">
+            <div class="project-avatar" style="background: ${p.color}">${p.name[0]}</div>
+            <div>
+              <div class="project-name">${p.name}</div>
+              <div class="project-domain">${p.domain}</div>
+            </div>
+          </div>
+          <div class="project-stats">
+            <div class="project-stat">
+              <div class="project-stat-value">${p.top10}</div>
+              <div class="project-stat-label">TOP-10</div>
+            </div>
+            <div class="project-stat">
+              <div class="project-stat-value">${(p.shows/1000).toFixed(1)}K</div>
+              <div class="project-stat-label">Показов</div>
+            </div>
+            <div class="project-stat">
+              <div class="project-stat-value">${p.clicks}</div>
+              <div class="project-stat-label">Кликов</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('presaleProjects').innerHTML = d.presale.map(p => `
+        <div class="lead-card">
+          <div class="lead-name">${p.name}</div>
+          <div class="lead-info">${p.industry}</div>
+          <div class="lead-value">${p.value}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderFinances() {
+      const d = DEMO_DATA;
+      const totalMRR = d.projects.reduce((sum, p) => sum + p.mrr, 0);
+      
+      document.getElementById('statMRR').textContent = (totalMRR / 1000).toFixed(0) + 'K ₽';
+      document.getElementById('statProjectsCount').textContent = d.projects.length;
+      
+      // Revenue Chart
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: d.projects.map(p => p.name.split(' ')[0]),
+          datasets: [{
+            data: d.projects.map(p => p.mrr / 1000),
+            backgroundColor: d.projects.map(p => p.color),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8e8e93' } },
+            x: { grid: { display: false }, ticks: { color: '#8e8e93', font: { size: 10 } } }
+          }
         }
-        
-        // === API ===
-        async function supabaseFetch(table, query = '') {
-            const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}${query}`;
-            const resp = await fetch(url, {
-                headers: {
-                    'apikey': CONFIG.SUPABASE_KEY,
-                    'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`
-                }
-            });
-            return resp.json();
+      });
+    }
+
+    function renderPipeline() {
+      const stages = [
+        { id: 'cold', name: 'Холодные', color: '#6b7280' },
+        { id: 'meeting', name: 'Встреча', color: '#f59e0b' },
+        { id: 'proposal', name: 'КП отправлено', color: '#3b82f6' },
+        { id: 'negotiation', name: 'Переговоры', color: '#8b5cf6' },
+        { id: 'closed', name: 'Закрыто', color: '#10b981' }
+      ];
+      
+      document.getElementById('pipelineStages').innerHTML = stages.map(stage => {
+        const leads = DEMO_DATA.presale.filter(p => p.stage === stage.id);
+        return `
+          <div class="pipeline-stage">
+            <div class="stage-header">
+              <div class="stage-dot" style="background: ${stage.color}"></div>
+              <div class="stage-name">${stage.name}</div>
+              <div class="stage-count">${leads.length}</div>
+            </div>
+            ${leads.map(lead => `
+              <div class="lead-card">
+                <div class="lead-name">${lead.name}</div>
+                <div class="lead-info">${lead.industry}</div>
+                <div class="lead-value">${lead.value}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPositionsChart(positions) {
+      const ctx = document.getElementById('positionsChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['', '', '', '', '', '', ''],
+          datasets: [{
+            data: positions,
+            backgroundColor: positions.map(p => 
+              p <= 10 ? '#4ade80' : p <= 20 ? '#60a5fa' : '#f87171'
+            ),
+            borderRadius: 6,
+            barThickness: 28
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'x',
+          scales: {
+            y: {
+              reverse: true,
+              min: 1,
+              max: 25,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { display: false }
+            },
+            x: { grid: { display: false }, ticks: { display: false } }
+          },
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
         }
-        
-        async function loadData() {
-            try {
-                // Load clients
-                state.clients = await supabaseFetch('clients', '?select=*&order=name');
-                
-                // Load positions
-                state.positions = await supabaseFetch('positions', '?select=*&order=impressions.desc&limit=50');
-                
-                // Load recommendations (if exists)
-                try {
-                    state.recommendations = await supabaseFetch('recommendations', '?select=*&limit=10');
-                } catch (e) {
-                    state.recommendations = [];
-                }
-                
-                // Set default project
-                if (state.clients.length > 0 && !state.selectedProject) {
-                    const activeClients = state.clients.filter(c => c.status === 'active');
-                    state.selectedProject = activeClients[0]?.id || state.clients[0].id;
-                }
-            } catch (error) {
-                console.error('Load error:', error);
-            }
-        }
-        
-        // === HELPERS ===
-        function getSelectedClient() {
-            return state.clients.find(c => c.id === state.selectedProject);
-        }
-        
-        function getClientPositions() {
-            return state.positions.filter(p => p.client_id === state.selectedProject);
-        }
-        
-        function formatNumber(num) {
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return num?.toLocaleString('ru-RU') || '0';
-        }
-        
-        function getPositionClass(pos) {
-            if (pos <= 3) return 'top3';
-            if (pos <= 10) return 'top10';
-            if (pos <= 30) return 'top30';
-            return 'below';
-        }
-        
-        function getRandomGradient(index) {
-            const gradients = [
-                'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
-                'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
-                'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-            ];
-            return gradients[index % gradients.length];
-        }
-        
-        // === RENDER ===
-        function render() {
-            const app = document.getElementById('app');
-            const client = getSelectedClient();
-            const positions = getClientPositions();
-            
-            // Calculate metrics
-            const totalShows = positions.reduce((sum, p) => sum + (p.impressions || 0), 0);
-            const totalClicks = positions.reduce((sum, p) => sum + (p.clicks || 0), 0);
-            const avgPosition = positions.length > 0 
-                ? (positions.reduce((sum, p) => sum + (p.position || 0), 0) / positions.length).toFixed(1)
-                : '—';
-            const avgCtr = totalShows > 0 ? ((totalClicks / totalShows) * 100).toFixed(1) : '0';
-            
-            const activeClients = state.clients.filter(c => c.status === 'active');
-            const presaleClients = state.clients.filter(c => c.status === 'presale');
-            
-            app.innerHTML = `
-                <!-- Mobile Header -->
-                <div class="mobile-header">
-                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-                    <div class="logo-text">Art<span>vision</span></div>
-                    <button class="mobile-menu-btn" onclick="refresh()">↻</button>
-                </div>
-                
-                <!-- Overlay -->
-                <div class="overlay ${state.sidebarOpen ? 'open' : ''}" onclick="toggleSidebar()"></div>
-                
-                <div class="app ${state.mode === 'agency' ? 'agency-mode' : ''}">
-                    <!-- Sidebar -->
-                    <aside class="sidebar ${state.sidebarOpen ? 'open' : ''}">
-                        <div class="sidebar-header">
-                            <div class="logo">A</div>
-                            <div class="logo-text">Art<span>vision</span></div>
-                        </div>
-                        
-                        <!-- Role Switcher -->
-                        <div class="role-switcher">
-                            <button class="role-btn ${state.mode === 'client' ? 'active' : ''}" onclick="setMode('client')">Клиент</button>
-                            <button class="role-btn ${state.mode === 'agency' ? 'active' : ''}" onclick="setMode('agency')">Агентство</button>
-                        </div>
-                        
-                        <!-- Project Selector (Client Mode) -->
-                        <div class="project-selector client-only">
-                            <select class="project-select" onchange="selectProject(this.value)">
-                                ${activeClients.map(c => `
-                                    <option value="${c.id}" ${c.id === state.selectedProject ? 'selected' : ''}>
-                                        ${c.name}
-                                    </option>
-                                `).join('')}
-                            </select>
-                        </div>
-                        
-                        <!-- Navigation -->
-                        <nav class="nav">
-                            <div class="nav-section">
-                                <div class="nav-title">Меню</div>
-                                <div class="nav-item ${state.currentPage === 'dashboard' ? 'active' : ''}" onclick="setPage('dashboard')">
-                                    <span class="nav-icon">📊</span>
-                                    Дашборд
-                                </div>
-                                <div class="nav-item ${state.currentPage === 'positions' ? 'active' : ''}" onclick="setPage('positions')">
-                                    <span class="nav-icon">📈</span>
-                                    Позиции
-                                </div>
-                                <div class="nav-item ${state.currentPage === 'reports' ? 'active' : ''}" onclick="setPage('reports')">
-                                    <span class="nav-icon">📄</span>
-                                    Отчёты
-                                </div>
-                                <div class="nav-item client-only ${state.currentPage === 'documents' ? 'active' : ''}" onclick="setPage('documents')">
-                                    <span class="nav-icon">📁</span>
-                                    Документы
-                                    <span class="nav-badge">2</span>
-                                </div>
-                            </div>
-                            
-                            <div class="nav-section agency-only">
-                                <div class="nav-title">Агентство</div>
-                                <div class="nav-item ${state.currentPage === 'projects' ? 'active' : ''}" onclick="setPage('projects')">
-                                    <span class="nav-icon">🗂</span>
-                                    Все проекты
-                                </div>
-                                <div class="nav-item ${state.currentPage === 'finances' ? 'active' : ''}" onclick="setPage('finances')">
-                                    <span class="nav-icon">💰</span>
-                                    Финансы
-                                </div>
-                                <div class="nav-item ${state.currentPage === 'team' ? 'active' : ''}" onclick="setPage('team')">
-                                    <span class="nav-icon">👥</span>
-                                    Команда
-                                </div>
-                            </div>
-                        </nav>
-                        
-                        <!-- User -->
-                        <div class="sidebar-user">
-                            <div class="user-card">
-                                <div class="user-avatar">${state.telegramUser?.first_name?.[0] || 'K'}</div>
-                                <div class="user-info">
-                                    <div class="user-name">${state.telegramUser?.first_name || 'Кирилл'}</div>
-                                    <div class="user-role">${state.mode === 'agency' ? 'Агентство' : 'Клиент'}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-                    
-                    <!-- Main Content -->
-                    <main class="main">
-                        ${renderPage(client, positions, totalShows, totalClicks, avgPosition, avgCtr, activeClients, presaleClients)}
-                    </main>
-                </div>
-                
-                <!-- Bottom Nav (Mobile) -->
-                <nav class="bottom-nav">
-                    <div class="bottom-nav-items">
-                        <div class="bottom-nav-item ${state.currentPage === 'dashboard' ? 'active' : ''}" onclick="setPage('dashboard')">
-                            <span class="bottom-nav-icon">📊</span>
-                            Дашборд
-                        </div>
-                        <div class="bottom-nav-item ${state.currentPage === 'positions' ? 'active' : ''}" onclick="setPage('positions')">
-                            <span class="bottom-nav-icon">📈</span>
-                            Позиции
-                        </div>
-                        <div class="bottom-nav-item ${state.currentPage === 'documents' ? 'active' : ''}" onclick="setPage('documents')">
-                            <span class="bottom-nav-icon">📁</span>
-                            Документы
-                        </div>
-                        <div class="bottom-nav-item" onclick="contactManager()">
-                            <span class="bottom-nav-icon">💬</span>
-                            Связь
-                        </div>
-                    </div>
-                </nav>
-            `;
-            
-            // Init chart
-            if (state.currentPage === 'dashboard' || state.currentPage === 'positions') {
-                setTimeout(() => initChart(positions), 100);
-            }
-        }
-        
-        function renderPage(client, positions, totalShows, totalClicks, avgPosition, avgCtr, activeClients, presaleClients) {
-            switch (state.currentPage) {
-                case 'dashboard':
-                    return renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr);
-                case 'positions':
-                    return renderPositions(client, positions);
-                case 'documents':
-                    return renderDocuments(client);
-                case 'reports':
-                    return renderReports(client);
-                case 'projects':
-                    return renderProjects(activeClients, presaleClients);
-                case 'finances':
-                    return renderFinances(activeClients);
-                default:
-                    return renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr);
-            }
-        }
-        
-        function renderDashboard(client, positions, totalShows, totalClicks, avgPosition, avgCtr) {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">${client?.name || 'Дашборд'}</h1>
-                        <p class="page-subtitle">${client?.domain || 'Выберите проект'}</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="btn btn-secondary" onclick="refresh()">↻ Обновить</button>
-                        <button class="btn btn-primary" onclick="contactManager()">💬 Написать</button>
-                    </div>
-                </div>
-                
-                <!-- Metrics -->
-                <div class="metrics-grid">
-                    <div class="metric-card blue">
-                        <div class="metric-icon">👁</div>
-                        <div class="metric-label">Показы</div>
-                        <div class="metric-value">${formatNumber(totalShows)}</div>
-                        <div class="metric-change up">↑ 12%</div>
-                    </div>
-                    <div class="metric-card green">
-                        <div class="metric-icon">👆</div>
-                        <div class="metric-label">Клики</div>
-                        <div class="metric-value">${formatNumber(totalClicks)}</div>
-                        <div class="metric-change up">↑ 8%</div>
-                    </div>
-                    <div class="metric-card amber">
-                        <div class="metric-icon">📍</div>
-                        <div class="metric-label">Средняя позиция</div>
-                        <div class="metric-value">${avgPosition}</div>
-                        <div class="metric-change up">↑ 2.3</div>
-                    </div>
-                    <div class="metric-card purple">
-                        <div class="metric-icon">📊</div>
-                        <div class="metric-label">CTR</div>
-                        <div class="metric-value">${avgCtr}%</div>
-                        <div class="metric-change up">↑ 0.3%</div>
-                    </div>
-                </div>
-                
-                <!-- Content -->
-                <div class="content-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Динамика</h3>
-                            <div class="card-tabs">
-                                <button class="card-tab active" data-chart="shows">Показы</button>
-                                <button class="card-tab" data-chart="clicks">Клики</button>
-                                <button class="card-tab" data-chart="position">Позиция</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="mainChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">💡 Потенциал роста</h3>
-                        </div>
-                        <div class="card-body" style="padding: 0;">
-                            ${state.recommendations.length > 0 ? state.recommendations.slice(0, 4).map(rec => `
-                                <div class="recommendation-item">
-                                    <div class="rec-info">
-                                        <h4>${rec.cluster || rec.title}</h4>
-                                        <p>${rec.description || 'Рекомендация'}</p>
-                                    </div>
-                                    <div class="rec-potential">
-                                        <div class="rec-value">+${formatNumber(rec.potential || 0)}</div>
-                                        <div class="rec-label">показов</div>
-                                    </div>
-                                </div>
-                            `).join('') : `
-                                <div class="recommendation-item">
-                                    <div class="rec-info">
-                                        <h4>Анализируем данные</h4>
-                                        <p>Рекомендации появятся после сбора статистики</p>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Top Queries -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">ТОП запросы</h3>
-                        <button class="btn btn-secondary" onclick="setPage('positions')">Все запросы →</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="queries-table">
-                            <div class="query-row header">
-                                <div>Запрос</div>
-                                <div style="text-align: right">Показы</div>
-                                <div style="text-align: right">Клики</div>
-                                <div style="text-align: right">CTR</div>
-                                <div style="text-align: center">Позиция</div>
-                            </div>
-                            ${positions.slice(0, 7).map(p => `
-                                <div class="query-row">
-                                    <div class="query-text">${p.query}</div>
-                                    <div class="query-value">${formatNumber(p.impressions)}</div>
-                                    <div class="query-value">${formatNumber(p.clicks)}</div>
-                                    <div class="query-value">${p.ctr?.toFixed(1) || '0'}%</div>
-                                    <div style="text-align: center">
-                                        <span class="position-badge ${getPositionClass(p.position)}">${p.position?.toFixed(0) || '—'}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderPositions(client, positions) {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Позиции</h1>
-                        <p class="page-subtitle">${client?.domain || ''} — ${positions.length} запросов</p>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Все запросы</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="queries-table">
-                            <div class="query-row header">
-                                <div>Запрос</div>
-                                <div style="text-align: right">Показы</div>
-                                <div style="text-align: right">Клики</div>
-                                <div style="text-align: right">CTR</div>
-                                <div style="text-align: center">Позиция</div>
-                            </div>
-                            ${positions.map(p => `
-                                <div class="query-row">
-                                    <div class="query-text">${p.query}</div>
-                                    <div class="query-value">${formatNumber(p.impressions)}</div>
-                                    <div class="query-value">${formatNumber(p.clicks)}</div>
-                                    <div class="query-value">${p.ctr?.toFixed(1) || '0'}%</div>
-                                    <div style="text-align: center">
-                                        <span class="position-badge ${getPositionClass(p.position)}">${p.position?.toFixed(0) || '—'}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderDocuments(client) {
-            const documents = [
-                { name: 'Счёт №127 — Декабрь 2025', type: 'invoice', date: '25.12.2025', status: 'pending', statusText: 'Ожидает' },
-                { name: 'Акт №126 — Ноябрь 2025', type: 'pdf', date: '30.11.2025', status: 'paid', statusText: 'Оплачен' },
-                { name: 'Отчёт SEO — Ноябрь 2025', type: 'report', date: '28.11.2025', status: 'paid', statusText: 'Готов' },
-                { name: 'Счёт №126 — Ноябрь 2025', type: 'invoice', date: '25.11.2025', status: 'paid', statusText: 'Оплачен' },
-                { name: 'Договор на SEO-продвижение', type: 'pdf', date: '01.09.2025', status: 'paid', statusText: 'Подписан' }
-            ];
-            
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Документы</h1>
-                        <p class="page-subtitle">Счета, акты и отчёты</p>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Все документы</h3>
-                    </div>
-                    <div class="documents-list">
-                        ${documents.map(doc => `
-                            <div class="doc-item">
-                                <div class="doc-icon ${doc.type}">
-                                    ${doc.type === 'invoice' ? '💳' : doc.type === 'report' ? '📊' : '📄'}
-                                </div>
-                                <div class="doc-info">
-                                    <div class="doc-name">${doc.name}</div>
-                                    <div class="doc-meta">${doc.date}</div>
-                                </div>
-                                <span class="doc-status ${doc.status}">${doc.statusText}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderReports(client) {
-            const reports = [
-                { name: 'SEO-отчёт — Декабрь 2025', date: '28.12.2025', status: 'В работе' },
-                { name: 'SEO-отчёт — Ноябрь 2025', date: '28.11.2025', status: 'Готов' },
-                { name: 'SEO-отчёт — Октябрь 2025', date: '28.10.2025', status: 'Готов' }
-            ];
-            
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Отчёты</h1>
-                        <p class="page-subtitle">Ежемесячные SEO-отчёты</p>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="documents-list" style="padding-top: 20px;">
-                        ${reports.map(r => `
-                            <div class="doc-item">
-                                <div class="doc-icon report">📊</div>
-                                <div class="doc-info">
-                                    <div class="doc-name">${r.name}</div>
-                                    <div class="doc-meta">${r.date}</div>
-                                </div>
-                                <span class="doc-status ${r.status === 'Готов' ? 'paid' : 'pending'}">${r.status}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderProjects(activeClients, presaleClients) {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Все проекты</h1>
-                        <p class="page-subtitle">${activeClients.length} активных, ${presaleClients.length} presale</p>
-                    </div>
-                </div>
-                
-                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Активные клиенты</h3>
-                <div class="projects-grid">
-                    ${activeClients.map((c, i) => {
-                        const clientPositions = state.positions.filter(p => p.client_id === c.id);
-                        const shows = clientPositions.reduce((sum, p) => sum + (p.impressions || 0), 0);
-                        const clicks = clientPositions.reduce((sum, p) => sum + (p.clicks || 0), 0);
-                        return `
-                            <div class="project-card" onclick="selectProject('${c.id}'); setMode('client'); setPage('dashboard');">
-                                <div class="project-header">
-                                    <div class="project-logo" style="background: ${getRandomGradient(i)}">${c.name[0]}</div>
-                                    <div>
-                                        <div class="project-name">${c.name}</div>
-                                        <div class="project-domain">${c.domain}</div>
-                                    </div>
-                                </div>
-                                <div class="project-metrics">
-                                    <div class="project-metric">
-                                        <div class="project-metric-value">${formatNumber(shows)}</div>
-                                        <div class="project-metric-label">Показы</div>
-                                    </div>
-                                    <div class="project-metric">
-                                        <div class="project-metric-value">${formatNumber(clicks)}</div>
-                                        <div class="project-metric-label">Клики</div>
-                                    </div>
-                                </div>
-                                <span class="project-status active">Активный</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-                
-                ${presaleClients.length > 0 ? `
-                    <h3 style="margin: 28px 0 16px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Presale</h3>
-                    <div class="projects-grid">
-                        ${presaleClients.map((c, i) => `
-                            <div class="project-card">
-                                <div class="project-header">
-                                    <div class="project-logo" style="background: ${getRandomGradient(i + 5)}">${c.name[0]}</div>
-                                    <div>
-                                        <div class="project-name">${c.name}</div>
-                                        <div class="project-domain">${c.domain}</div>
-                                    </div>
-                                </div>
-                                <span class="project-status presale">Presale</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-            `;
-        }
-        
-        function renderFinances(activeClients) {
-            const totalMRR = 1200000;
-            return `
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Финансы</h1>
-                        <p class="page-subtitle">Декабрь 2025</p>
-                    </div>
-                </div>
-                
-                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="metric-card green">
-                        <div class="metric-icon">💰</div>
-                        <div class="metric-label">MRR</div>
-                        <div class="metric-value">${formatNumber(totalMRR)} ₽</div>
-                    </div>
-                    <div class="metric-card blue">
-                        <div class="metric-icon">📊</div>
-                        <div class="metric-label">Проектов</div>
-                        <div class="metric-value">${activeClients.length}</div>
-                    </div>
-                    <div class="metric-card amber">
-                        <div class="metric-icon">📈</div>
-                        <div class="metric-label">Средний чек</div>
-                        <div class="metric-value">${formatNumber(Math.round(totalMRR / activeClients.length))} ₽</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Доходы по проектам</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="financeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // === CHART ===
-        function initChart(positions) {
-            const ctx = document.getElementById('mainChart');
-            if (!ctx) return;
-            
-            // Generate demo data
-            const labels = ['Нояб', 'Дек 1', 'Дек 8', 'Дек 15', 'Дек 22', 'Дек 28'];
-            const showsData = [12500, 13200, 14100, 13800, 15200, 16500];
-            const clicksData = [320, 380, 410, 395, 480, 520];
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Показы',
-                        data: showsData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        y: {
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
-                            ticks: { color: '#64748b' }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // === ACTIONS ===
-        function setMode(mode) {
-            state.mode = mode;
-            if (mode === 'agency') {
-                state.currentPage = 'projects';
-            } else {
-                state.currentPage = 'dashboard';
-            }
-            render();
-        }
-        
-        function setPage(page) {
-            state.currentPage = page;
-            state.sidebarOpen = false;
-            render();
-        }
-        
-        function selectProject(id) {
-            state.selectedProject = id;
-            render();
-        }
-        
-        function toggleSidebar() {
-            state.sidebarOpen = !state.sidebarOpen;
-            render();
-        }
-        
-        async function refresh() {
-            await loadData();
-            render();
-        }
-        
-        function contactManager() {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.openTelegramLink(CONFIG.MANAGER_LINK);
-            } else {
-                window.open(CONFIG.MANAGER_LINK, '_blank');
-            }
-        }
-        
-        // === START ===
-        init();
-    </script>
+      });
+    }
+
+    // === ACTIONS ===
+    function setTab(tabId) {
+      state.currentTab = tabId;
+      
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      
+      // Show selected page
+      const page = document.getElementById('page-' + tabId);
+      if (page) page.classList.add('active');
+      
+      renderTabs();
+      
+      // Render page content
+      if (tabId === 'positions') renderPositions();
+      if (tabId === 'reports') renderReports();
+      if (tabId === 'tips') renderTips();
+      if (tabId === 'projects') renderProjects();
+      if (tabId === 'finances') renderFinances();
+      if (tabId === 'pipeline') renderPipeline();
+    }
+
+    function setRole(role) {
+      state.role = role;
+      state.currentTab = role === 'agency' ? 'projects' : 'overview';
+      
+      // Update role buttons
+      document.querySelectorAll('.role-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.includes(role === 'client' ? 'Клиент' : 'Агентство'));
+      });
+      
+      renderHeader();
+      renderTabs();
+      setTab(state.currentTab);
+    }
+
+    function refresh() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('loading');
+      
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        renderOverview();
+      }, 1000);
+    }
+
+    function openChat() {
+      if (tg) {
+        tg.openTelegramLink('https://t.me/artvision_support');
+      } else {
+        window.open('https://t.me/artvision_support', '_blank');
+      }
+    }
+
+    // === INIT ===
+    function init() {
+      renderHeader();
+      renderTabs();
+      renderOverview();
+      
+      // For demo: show agency mode
+      if (state.isAgencyUser) {
+        setRole('agency');
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>
