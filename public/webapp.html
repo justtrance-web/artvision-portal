@@ -84,7 +84,8 @@
     /* === CONTENT === */
     .content { padding: 0 16px; }
     .page { display: none; }
-    .page.active { display: block; }
+    .page.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     /* === STATS === */
     .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
@@ -162,8 +163,9 @@
       color: var(--accent-light);
       flex-shrink: 0;
     }
+    .query-position.top3 { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
     .query-position.top10 { background: rgba(74, 222, 128, 0.15); color: var(--success); }
-    .query-position.top20 { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .query-position.top20 { background: rgba(96, 165, 250, 0.15); color: var(--accent-light); }
     .query-position.below { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
     
     .query-info { flex: 1; min-width: 0; }
@@ -173,6 +175,7 @@
     .query-change { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 2px; }
     .query-change.up { color: var(--success); }
     .query-change.down { color: var(--danger); }
+    .query-change.neutral { color: var(--text-secondary); }
 
     /* === REPORTS === */
     .report-item {
@@ -201,33 +204,7 @@
       cursor: pointer;
     }
 
-    /* === TIPS === */
-    .tip-card {
-      background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.15) 100%);
-      border: 1px solid rgba(59,130,246,0.3);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 12px;
-    }
-    
-    .tip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .tip-icon { font-size: 24px; }
-    .tip-title { font-size: 16px; font-weight: 600; }
-    .tip-text { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
-    .tip-action {
-      margin-top: 12px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    /* === DOCUMENTS (клиентский кабинет) === */
+    /* === DOCUMENTS === */
     .doc-item {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -246,43 +223,35 @@
     .doc-status.paid { background: rgba(74,222,128,0.15); color: var(--success); }
     .doc-status.pending { background: rgba(251,191,36,0.15); color: var(--warning); }
 
-    /* === AGENCY: Projects Grid === */
-    .projects-grid { display: grid; gap: 12px; margin-top: 16px; }
-    
-    .project-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+    /* === TIPS === */
+    .tip-card {
+      background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.15) 100%);
+      border: 1px solid rgba(59,130,246,0.3);
       border-radius: 16px;
-      padding: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .tip-card.high { 
+      background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(249,115,22,0.15) 100%);
+      border-color: rgba(251,191,36,0.3);
     }
     
-    .project-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .project-avatar { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .project-name { font-size: 16px; font-weight: 600; }
-    .project-domain { font-size: 13px; color: var(--text-secondary); }
-    
-    .project-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .project-stat { text-align: center; }
-    .project-stat-value { font-size: 18px; font-weight: 700; }
-    .project-stat-label { font-size: 11px; color: var(--text-secondary); }
-
-    /* === AGENCY: Presale Pipeline === */
-    .pipeline-stage { margin-bottom: 20px; }
-    .stage-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .stage-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .stage-name { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-    .stage-count { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
-    
-    .lead-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 8px;
+    .tip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .tip-icon { font-size: 24px; }
+    .tip-title { font-size: 16px; font-weight: 600; }
+    .tip-text { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+    .tip-action {
+      margin-top: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
     }
-    .lead-name { font-size: 15px; font-weight: 600; }
-    .lead-info { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-    .lead-value { font-size: 14px; font-weight: 600; color: var(--success); margin-top: 6px; }
 
     /* === TAB BAR === */
     .tab-bar {
@@ -346,32 +315,6 @@
     }
     .cta-btn:active { transform: scale(0.98); }
 
-    /* === ROLE SWITCHER === */
-    .role-switcher {
-      display: flex;
-      background: var(--bg-card);
-      border-radius: 12px;
-      padding: 4px;
-      margin: 16px 0;
-      border: 1px solid var(--border);
-    }
-    .role-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background: none;
-      color: var(--text-secondary);
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .role-btn.active {
-      background: var(--accent);
-      color: #fff;
-    }
-
     /* === SECTION TITLE === */
     .section-title {
       font-size: 14px;
@@ -382,14 +325,25 @@
       margin: 20px 0 12px;
     }
 
-    /* === EMPTY STATE === */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
+    /* === LOADING === */
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
       color: var(--text-secondary);
     }
-    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state-text { font-size: 15px; }
+    .loading-spinner::before {
+      content: '';
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -397,10 +351,10 @@
   <!-- HEADER -->
   <header class="header">
     <div class="header-left">
-      <div class="avatar" id="avatar">A</div>
+      <div class="avatar" id="avatar">Т</div>
       <div>
-        <div class="client-name" id="clientName">Загрузка...</div>
-        <div class="client-domain" id="clientDomain"></div>
+        <div class="client-name" id="clientName">Творим Совершенство</div>
+        <div class="client-domain" id="clientDomain">tvorimsovershenstvo.ru</div>
       </div>
     </div>
     <button class="refresh-btn" id="refreshBtn" onclick="refresh()">↻</button>
@@ -408,31 +362,23 @@
 
   <div class="content">
     
-    <!-- Role Switcher (только для агентства) -->
-    <div class="role-switcher" id="roleSwitcher" style="display:none;">
-      <button class="role-btn active" onclick="setRole('client')">👤 Клиент</button>
-      <button class="role-btn" onclick="setRole('agency')">🏢 Агентство</button>
-    </div>
-
-    <!-- ========== CLIENT PAGES ========== -->
-    
-    <!-- PAGE: Overview -->
+    <!-- PAGE: Обзор -->
     <div class="page active" id="page-overview">
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-label">Показы</div>
-          <div class="stat-value" id="statShows">—</div>
+          <div class="stat-value" id="statShows">71</div>
           <div class="stat-change up" id="changeShows">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
-            <span>—</span>
+            <span>23%</span>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Клики</div>
-          <div class="stat-value" id="statClicks">—</div>
+          <div class="stat-value" id="statClicks">6</div>
           <div class="stat-change up" id="changeClicks">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
-            <span>—</span>
+            <span>15%</span>
           </div>
         </div>
       </div>
@@ -441,11 +387,11 @@
         <div class="position-header">
           <div>
             <div class="position-label">Средняя позиция</div>
-            <div class="position-value" id="statPosition">—</div>
+            <div class="position-value" id="statPosition">8.1</div>
           </div>
           <div class="stat-change up" id="changePosition">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:14px;height:14px"><path d="M18 15l-6-6-6 6"/></svg>
-            <span>—</span>
+            <span>8%</span>
           </div>
         </div>
         <div class="chart-container">
@@ -460,75 +406,53 @@
       <div class="queries-card">
         <div class="queries-header">
           <div class="queries-title">Топ запросы</div>
-          <a href="#" class="queries-all" onclick="setTab('positions'); return false;">Все ↗</a>
+          <a href="#" class="queries-all" onclick="setTab('positions'); return false;">Все →</a>
         </div>
         <div id="topQueries"></div>
       </div>
     </div>
 
-    <!-- PAGE: Positions -->
+    <!-- PAGE: Позиции -->
     <div class="page" id="page-positions">
       <div class="section-title">Все запросы</div>
       <div id="allQueries"></div>
     </div>
 
-    <!-- PAGE: Reports -->
+    <!-- PAGE: Отчёты -->
     <div class="page" id="page-reports">
-      <div class="section-title">Отчёты</div>
+      <div class="section-title">SEO Отчёты</div>
       <div id="reportsList"></div>
       
       <div class="section-title">Документы</div>
       <div id="docsList"></div>
     </div>
 
-    <!-- PAGE: Tips -->
+    <!-- PAGE: Советы -->
     <div class="page" id="page-tips">
       <div class="section-title">Рекомендации по росту</div>
       <div id="tipsList"></div>
     </div>
 
-    <!-- ========== AGENCY PAGES ========== -->
-    
-    <!-- PAGE: Projects -->
-    <div class="page" id="page-projects">
-      <div class="section-title">Активные проекты</div>
-      <div class="projects-grid" id="activeProjects"></div>
-      
-      <div class="section-title">Presale</div>
-      <div class="projects-grid" id="presaleProjects"></div>
-    </div>
-
-    <!-- PAGE: Finances -->
-    <div class="page" id="page-finances">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">MRR</div>
-          <div class="stat-value" id="statMRR">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Проектов</div>
-          <div class="stat-value" id="statProjectsCount">—</div>
-        </div>
-      </div>
-      <div class="position-card">
-        <div class="position-label">Доход по проектам</div>
-        <div class="chart-container">
-          <canvas id="revenueChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: Pipeline -->
-    <div class="page" id="page-pipeline">
-      <div class="section-title">Воронка продаж</div>
-      <div id="pipelineStages"></div>
-    </div>
-
   </div>
 
   <!-- TAB BAR -->
-  <nav class="tab-bar" id="tabBar">
-    <!-- Tabs will be rendered by JS -->
+  <nav class="tab-bar">
+    <button class="tab-item active" onclick="setTab('overview')" data-tab="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>
+      <span>Обзор</span>
+    </button>
+    <button class="tab-item" onclick="setTab('positions')" data-tab="positions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
+      <span>Позиции</span>
+    </button>
+    <button class="tab-item" onclick="setTab('reports')" data-tab="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
+      <span>Отчёты</span>
+    </button>
+    <button class="tab-item" onclick="setTab('tips')" data-tab="tips">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21h6M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3z"/></svg>
+      <span>Советы</span>
+    </button>
   </nav>
 
   <!-- CTA BUTTON -->
@@ -539,111 +463,12 @@
   </div>
 
   <script>
-    // === CONFIG ===
-    const SUPABASE_URL = 'https://gjwdlbwznkwjghquhhyz.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqd2RsYnd6bmt3amdocXVoaHl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTEzNjksImV4cCI6MjA4MjAyNzM2OX0.pQTxrgsKygh3S83AvVv9Lg0KgebXBwKbD5ID-gsmdDI';
-    
-    const AGENCY_USERS = ['antonkamer', 'PandaCaffe', 'mig555555', 'akpersik'];
-    
-    // === STATE ===
-    let state = {
-      role: 'client', // 'client' or 'agency'
-      currentTab: 'overview',
-      isAgencyUser: false,
-      client: null,
-      data: null,
-      loading: true
-    };
-
-    // === TELEGRAM ===
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      
-      const user = tg.initDataUnsafe?.user;
-      if (user && AGENCY_USERS.includes(user.username)) {
-        state.isAgencyUser = true;
-        state.role = 'agency';
-      }
-    }
-
-    // === TABS CONFIG ===
-    const CLIENT_TABS = [
-      { id: 'overview', icon: 'chart', label: 'Обзор' },
-      { id: 'positions', icon: 'trend', label: 'Позиции' },
-      { id: 'reports', icon: 'doc', label: 'Отчёты' },
-      { id: 'tips', icon: 'bulb', label: 'Советы' }
-    ];
-    
-    const AGENCY_TABS = [
-      { id: 'projects', icon: 'grid', label: 'Проекты' },
-      { id: 'finances', icon: 'money', label: 'Финансы' },
-      { id: 'pipeline', icon: 'funnel', label: 'Presale' }
-    ];
-
-    // === ICONS ===
-    const ICONS = {
-      chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>',
-      trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>',
-      doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>',
-      bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21h6M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3z"/></svg>',
-      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
-      money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8M8 14h8"/></svg>',
-      funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2V12L3 4z"/></svg>'
-    };
-
-    // === API CONFIG ===
-    const API_BASE = 'https://artvision-portal.vercel.app/api/webmaster';
-    
-    const CLIENTS_CONFIG = {
-      'tvorimsovershenstvo.ru': { name: 'Творим Совершенство', avatar: 'ТС', color: '#667eea' },
-      'vlpco.ru': { name: 'VLPco', avatar: 'VL', color: '#ec4899' },
-      'burenie-skv.ru': { name: 'Бурение СКВ', avatar: 'БС', color: '#06b6d4' },
-      'otido.ru': { name: 'Otido', avatar: 'OT', color: '#f59e0b' },
-      'extru-tech.ru': { name: 'Extru-Tech', avatar: 'ET', color: '#10b981' }
-    };
-    
-    async function fetchWebmasterData(domain) {
-      try {
-        const res = await fetch(`${API_BASE}?domain=${domain}`);
-        const data = await res.json();
-        
-        if (data.error) {
-          console.error('API error:', data.error);
-          return null;
-        }
-        
-        const config = CLIENTS_CONFIG[domain] || { name: data.name, avatar: data.name[0], color: data.color };
-        
-        // Добавляем случайные изменения для демо (в реале нужно сравнивать с прошлым периодом)
-        const queries = data.queries.map(q => ({
-          ...q,
-          change: Math.floor(Math.random() * 6) - 2
-        }));
-        
-        return {
-          client: { name: config.name, domain, avatar: config.avatar },
-          stats: {
-            shows: { value: data.stats.shows, change: Math.floor(Math.random() * 30) },
-            clicks: { value: data.stats.clicks, change: Math.floor(Math.random() * 25) },
-            position: { value: data.stats.position, change: Math.floor(Math.random() * 15) }
-          },
-          positions: [15, 14, 13, 12, 11, 10, Math.round(data.stats.position)],
-          queries
-        };
-      } catch (e) {
-        console.error('Fetch error:', e);
-        return null;
-      }
-    }
-    
-    // === DEMO DATA (fallback) ===
-    const DEMO_DATA = {
+    // === DATA ===
+    const DATA = {
       client: {
         name: "Творим Совершенство",
         domain: "tvorimsovershenstvo.ru",
-        avatar: "ТС"
+        avatar: "Т"
       },
       stats: {
         shows: { value: 71, change: 23 },
@@ -654,278 +479,119 @@
       queries: [
         { q: "творим совершенство стоматология", pos: 1.3, shows: 9, clicks: 3, change: 2 },
         { q: "творим совершенство", pos: 1.9, shows: 8, clicks: 1, change: 1 },
-        { q: "керамические виниры e max", pos: 6, shows: 7, clicks: 0, change: -1 },
-        { q: "евсеенкова ирина", pos: 8.6, shows: 5, clicks: 1, change: 3 },
-        { q: "стоматология творим", pos: 2.1, shows: 4, clicks: 1, change: 0 }
+        { q: "керамические виниры e max", pos: 6.0, shows: 7, clicks: 0, change: -1 },
+        { q: "евсеенкова ирина вячеславовна", pos: 8.6, shows: 5, clicks: 1, change: 3 },
+        { q: "стоматология петроградская", pos: 12.4, shows: 4, clicks: 0, change: 0 },
+        { q: "виниры спб цена", pos: 15.2, shows: 6, clicks: 0, change: -2 },
+        { q: "имплантация зубов петроградская", pos: 18.5, shows: 5, clicks: 0, change: 1 },
+        { q: "отбеливание зубов спб", pos: 22.3, shows: 4, clicks: 0, change: -3 },
+        { q: "лечение кариеса спб", pos: 25.1, shows: 3, clicks: 0, change: 0 },
+        { q: "протезирование зубов спб", pos: 28.7, shows: 2, clicks: 0, change: 2 }
       ],
       reports: [
-        { title: "SEO отчёт — Декабрь", date: "25.12.2024", type: "seo" },
-        { title: "Контент-план Q1 2025", date: "20.12.2024", type: "plan" }
+        { title: "SEO отчёт — Декабрь 2024", date: "25.12.2024", type: "seo", url: "#" },
+        { title: "Контент-план Q1 2025", date: "20.12.2024", type: "plan", url: "#" },
+        { title: "Аудит технический", date: "15.12.2024", type: "audit", url: "#" }
       ],
       docs: [
-        { title: "Счёт #2024-089", amount: "45 000 ₽", status: "pending" },
-        { title: "Акт #2024-088", amount: "45 000 ₽", status: "paid" }
+        { title: "Счёт #2024-089", amount: "45 000 ₽", date: "20.12.2024", status: "pending" },
+        { title: "Акт #2024-088", amount: "45 000 ₽", date: "01.12.2024", status: "paid" },
+        { title: "Счёт #2024-087", amount: "45 000 ₽", date: "20.11.2024", status: "paid" }
       ],
       tips: [
-        { title: "Добавить страницу услуги", text: "Создайте страницу «Лечение пульпита» — потенциал 120 показов/мес", priority: "high" },
-        { title: "Оптимизировать Title", text: "На странице /implantation Title слишком длинный, рекомендуем сократить до 60 символов", priority: "medium" }
-      ],
-      projects: [
-        { name: "Творим Совершенство", domain: "tvorimsovershenstvo.ru", color: "#667eea", top10: 45, shows: 1247, clicks: 89, mrr: 45000 },
-        { name: "Atribeaute", domain: "atribeaute.ru", color: "#10b981", top10: 156, shows: 8400, clicks: 312, mrr: 80000 },
-        { name: "ANT Partners", domain: "ant-partners.ru", color: "#f59e0b", top10: 78, shows: 3200, clicks: 156, mrr: 35000 },
-        { name: "VLPco", domain: "vlpco.ru", color: "#ec4899", top10: 92, shows: 4100, clicks: 198, mrr: 55000 },
-        { name: "Бурение СКВ", domain: "burenie-skv.ru", color: "#06b6d4", top10: 34, shows: 980, clicks: 67, mrr: 25000 }
-      ],
-      presale: [
-        { name: "МедЦентр Здоровье", industry: "Медицина", value: "60 000 ₽/мес", stage: "proposal" },
-        { name: "АвтоТрейд", industry: "Авто", value: "45 000 ₽/мес", stage: "meeting" },
-        { name: "СтройМастер", industry: "Строительство", value: "35 000 ₽/мес", stage: "cold" }
+        { 
+          title: "Добавить страницу услуги", 
+          text: "Создайте страницу «Лечение пульпита» — потенциал 120 показов/мес по данным Wordstat", 
+          priority: "high",
+          action: "Создать ТЗ"
+        },
+        { 
+          title: "Оптимизировать Title", 
+          text: "На странице /implantation Title слишком длинный (78 символов). Рекомендуем сократить до 60 символов для лучшего отображения в выдаче.", 
+          priority: "medium",
+          action: "Подробнее"
+        },
+        { 
+          title: "Добавить отзывы", 
+          text: "На страницах услуг нет отзывов. Добавление 3-5 отзывов увеличит конверсию на 15-20%", 
+          priority: "medium",
+          action: "Инструкция"
+        }
       ]
     };
 
-    // === RENDER FUNCTIONS ===
-    function renderTabs() {
-      const tabs = state.role === 'agency' ? AGENCY_TABS : CLIENT_TABS;
-      const tabBar = document.getElementById('tabBar');
-      
-      tabBar.innerHTML = tabs.map(tab => `
-        <button class="tab-item ${state.currentTab === tab.id ? 'active' : ''}" onclick="setTab('${tab.id}')">
-          ${ICONS[tab.icon]}
-          <span>${tab.label}</span>
-        </button>
-      `).join('');
+    // === STATE ===
+    let currentTab = 'overview';
+    let chart = null;
+
+    // === TELEGRAM ===
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
     }
 
-    function renderHeader() {
-      const data = currentData || DEMO_DATA;
-      document.getElementById('clientName').textContent = state.role === 'agency' ? 'Artvision Agency' : data.client.name;
-      document.getElementById('clientDomain').textContent = state.role === 'agency' ? '5 проектов' : data.client.domain;
-      document.getElementById('avatar').textContent = state.role === 'agency' ? 'AV' : data.client.avatar[0];
-      
-      // Show role switcher for agency users
-      document.getElementById('roleSwitcher').style.display = state.isAgencyUser ? 'flex' : 'none';
-    }
-
-    function renderOverview() {
-      const d = currentData || DEMO_DATA;
-      
-      // Stats
-      document.getElementById('statShows').textContent = d.stats.shows.value.toLocaleString();
-      document.getElementById('statClicks').textContent = d.stats.clicks.value.toLocaleString();
-      document.getElementById('statPosition').textContent = d.stats.position.value;
-      
-      document.querySelector('#changeShows span').textContent = d.stats.shows.change + '%';
-      document.querySelector('#changeClicks span').textContent = d.stats.clicks.change + '%';
-      document.querySelector('#changePosition span').textContent = d.stats.position.change + '%';
-      
-      // Top Queries
-      document.getElementById('topQueries').innerHTML = d.queries.slice(0, 3).map(q => renderQueryItem(q)).join('');
-      
-      // Chart
-      renderPositionsChart(d.positions);
-    }
-
+    // === RENDER ===
     function renderQueryItem(q) {
-      const posClass = q.pos <= 10 ? 'top10' : q.pos <= 20 ? 'top20' : 'below';
-      const changeClass = q.change >= 0 ? 'up' : 'down';
-      const changeIcon = q.change >= 0 
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M18 15l-6-6-6 6"/></svg>'
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg>';
+      let posClass = 'below';
+      if (q.pos <= 3) posClass = 'top3';
+      else if (q.pos <= 10) posClass = 'top10';
+      else if (q.pos <= 20) posClass = 'top20';
+      
+      let changeClass = 'neutral';
+      let changeIcon = '—';
+      if (q.change > 0) {
+        changeClass = 'up';
+        changeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M18 15l-6-6-6 6"/></svg>`;
+      } else if (q.change < 0) {
+        changeClass = 'down';
+        changeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg>`;
+      }
       
       return `
         <div class="query-item">
-          <div class="query-position ${posClass}">${q.pos}</div>
+          <div class="query-position ${posClass}">${Math.round(q.pos)}</div>
           <div class="query-info">
             <div class="query-text">${q.q}</div>
-            <div class="query-stats">${q.shows} пок · ${q.clicks} кл</div>
+            <div class="query-stats">${q.shows} показов · ${q.clicks} кликов</div>
           </div>
           <div class="query-change ${changeClass}">
             ${changeIcon}
-            ${Math.abs(q.change)}
+            ${q.change !== 0 ? Math.abs(q.change) : ''}
           </div>
         </div>
       `;
     }
 
-    function renderPositions() {
-      const d = currentData || DEMO_DATA;
-      document.getElementById('allQueries').innerHTML = d.queries.map(q => renderQueryItem(q)).join('');
+    function renderOverview() {
+      // Stats
+      document.getElementById('statShows').textContent = DATA.stats.shows.value.toLocaleString();
+      document.getElementById('statClicks').textContent = DATA.stats.clicks.value.toLocaleString();
+      document.getElementById('statPosition').textContent = DATA.stats.position.value;
+      
+      document.querySelector('#changeShows span').textContent = DATA.stats.shows.change + '%';
+      document.querySelector('#changeClicks span').textContent = DATA.stats.clicks.change + '%';
+      document.querySelector('#changePosition span').textContent = DATA.stats.position.change + '%';
+      
+      // Top Queries
+      document.getElementById('topQueries').innerHTML = DATA.queries.slice(0, 3).map(q => renderQueryItem(q)).join('');
+      
+      // Chart
+      renderPositionsChart();
     }
 
-    function renderReports() {
-      const d = DEMO_DATA;
-      
-      document.getElementById('reportsList').innerHTML = d.reports.map(r => `
-        <div class="report-item">
-          <div class="report-icon">${r.type === 'seo' ? '📊' : '📋'}</div>
-          <div class="report-info">
-            <div class="report-title">${r.title}</div>
-            <div class="report-date">${r.date}</div>
-          </div>
-          <button class="report-btn">Открыть</button>
-        </div>
-      `).join('');
-      
-      document.getElementById('docsList').innerHTML = d.docs.map(doc => `
-        <div class="doc-item">
-          <div class="doc-icon">${doc.status === 'paid' ? '✅' : '📄'}</div>
-          <div class="doc-info">
-            <div class="doc-title">${doc.title}</div>
-            <div class="doc-meta">${doc.amount}</div>
-          </div>
-          <div class="doc-status ${doc.status}">${doc.status === 'paid' ? 'Оплачен' : 'Ожидает'}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderTips() {
-      document.getElementById('tipsList').innerHTML = DEMO_DATA.tips.map(tip => `
-        <div class="tip-card">
-          <div class="tip-header">
-            <div class="tip-icon">${tip.priority === 'high' ? '🔥' : '💡'}</div>
-            <div class="tip-title">${tip.title}</div>
-          </div>
-          <div class="tip-text">${tip.text}</div>
-          <button class="tip-action">Подробнее</button>
-        </div>
-      `).join('');
-    }
-
-    async function renderProjects() {
-      const container = document.getElementById('activeProjects');
-      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Загрузка проектов...</div></div>';
-      
-      const projects = [];
-      for (const domain of Object.keys(CLIENTS_CONFIG)) {
-        try {
-          const res = await fetch(`${API_BASE}?domain=${domain}`);
-          const data = await res.json();
-          if (data && !data.error) {
-            projects.push({
-              name: data.name || CLIENTS_CONFIG[domain].name,
-              domain,
-              color: data.color || CLIENTS_CONFIG[domain].color,
-              top10: data.stats.top10 || 0,
-              shows: data.stats.shows,
-              clicks: data.stats.clicks,
-              mrr: 45000
-            });
-          }
-        } catch (e) {
-          console.error(`Error loading ${domain}:`, e);
-        }
-      }
-      
-      if (projects.length === 0) {
-        projects.push(...DEMO_DATA.projects);
-      }
-      
-      container.innerHTML = projects.map(p => `
-        <div class="project-card">
-          <div class="project-header">
-            <div class="project-avatar" style="background: ${p.color}">${p.name[0]}</div>
-            <div>
-              <div class="project-name">${p.name}</div>
-              <div class="project-domain">${p.domain}</div>
-            </div>
-          </div>
-          <div class="project-stats">
-            <div class="project-stat">
-              <div class="project-stat-value">${p.top10}</div>
-              <div class="project-stat-label">TOP-10</div>
-            </div>
-            <div class="project-stat">
-              <div class="project-stat-value">${p.shows > 1000 ? (p.shows/1000).toFixed(1) + 'K' : p.shows}</div>
-              <div class="project-stat-label">Показов</div>
-            </div>
-            <div class="project-stat">
-              <div class="project-stat-value">${p.clicks}</div>
-              <div class="project-stat-label">Кликов</div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-      
-      document.getElementById('presaleProjects').innerHTML = DEMO_DATA.presale.map(p => `
-        <div class="lead-card">
-          <div class="lead-name">${p.name}</div>
-          <div class="lead-info">${p.industry}</div>
-          <div class="lead-value">${p.value}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderFinances() {
-      const d = DEMO_DATA;
-      const totalMRR = d.projects.reduce((sum, p) => sum + p.mrr, 0);
-      
-      document.getElementById('statMRR').textContent = (totalMRR / 1000).toFixed(0) + 'K ₽';
-      document.getElementById('statProjectsCount').textContent = d.projects.length;
-      
-      // Revenue Chart
-      const ctx = document.getElementById('revenueChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: d.projects.map(p => p.name.split(' ')[0]),
-          datasets: [{
-            data: d.projects.map(p => p.mrr / 1000),
-            backgroundColor: d.projects.map(p => p.color),
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8e8e93' } },
-            x: { grid: { display: false }, ticks: { color: '#8e8e93', font: { size: 10 } } }
-          }
-        }
-      });
-    }
-
-    function renderPipeline() {
-      const stages = [
-        { id: 'cold', name: 'Холодные', color: '#6b7280' },
-        { id: 'meeting', name: 'Встреча', color: '#f59e0b' },
-        { id: 'proposal', name: 'КП отправлено', color: '#3b82f6' },
-        { id: 'negotiation', name: 'Переговоры', color: '#8b5cf6' },
-        { id: 'closed', name: 'Закрыто', color: '#10b981' }
-      ];
-      
-      document.getElementById('pipelineStages').innerHTML = stages.map(stage => {
-        const leads = DEMO_DATA.presale.filter(p => p.stage === stage.id);
-        return `
-          <div class="pipeline-stage">
-            <div class="stage-header">
-              <div class="stage-dot" style="background: ${stage.color}"></div>
-              <div class="stage-name">${stage.name}</div>
-              <div class="stage-count">${leads.length}</div>
-            </div>
-            ${leads.map(lead => `
-              <div class="lead-card">
-                <div class="lead-name">${lead.name}</div>
-                <div class="lead-info">${lead.industry}</div>
-                <div class="lead-value">${lead.value}</div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderPositionsChart(positions) {
+    function renderPositionsChart() {
       const ctx = document.getElementById('positionsChart').getContext('2d');
-      new Chart(ctx, {
+      
+      if (chart) chart.destroy();
+      
+      chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: ['', '', '', '', '', '', ''],
           datasets: [{
-            data: positions,
-            backgroundColor: positions.map(p => 
+            data: DATA.positions,
+            backgroundColor: DATA.positions.map(p => 
               p <= 10 ? '#4ade80' : p <= 20 ? '#60a5fa' : '#f87171'
             ),
             borderRadius: 6,
@@ -951,53 +617,78 @@
       });
     }
 
-    // === ACTIONS ===
+    function renderPositions() {
+      document.getElementById('allQueries').innerHTML = DATA.queries.map(q => renderQueryItem(q)).join('');
+    }
+
+    function renderReports() {
+      const icons = { seo: '📊', plan: '📋', audit: '🔍' };
+      
+      document.getElementById('reportsList').innerHTML = DATA.reports.map(r => `
+        <div class="report-item">
+          <div class="report-icon">${icons[r.type] || '📄'}</div>
+          <div class="report-info">
+            <div class="report-title">${r.title}</div>
+            <div class="report-date">${r.date}</div>
+          </div>
+          <button class="report-btn" onclick="openReport('${r.url}')">Открыть</button>
+        </div>
+      `).join('');
+      
+      document.getElementById('docsList').innerHTML = DATA.docs.map(doc => `
+        <div class="doc-item">
+          <div class="doc-icon">${doc.status === 'paid' ? '✅' : '📄'}</div>
+          <div class="doc-info">
+            <div class="doc-title">${doc.title}</div>
+            <div class="doc-meta">${doc.amount} · ${doc.date}</div>
+          </div>
+          <div class="doc-status ${doc.status}">${doc.status === 'paid' ? 'Оплачен' : 'Ожидает'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderTips() {
+      document.getElementById('tipsList').innerHTML = DATA.tips.map(tip => `
+        <div class="tip-card ${tip.priority === 'high' ? 'high' : ''}">
+          <div class="tip-header">
+            <div class="tip-icon">${tip.priority === 'high' ? '🔥' : '💡'}</div>
+            <div class="tip-title">${tip.title}</div>
+          </div>
+          <div class="tip-text">${tip.text}</div>
+          <button class="tip-action" onclick="handleTip('${tip.title}')">${tip.action}</button>
+        </div>
+      `).join('');
+    }
+
+    // === NAVIGATION ===
     function setTab(tabId) {
-      state.currentTab = tabId;
+      currentTab = tabId;
       
       // Hide all pages
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + tabId).classList.add('active');
       
-      // Show selected page
-      const page = document.getElementById('page-' + tabId);
-      if (page) page.classList.add('active');
+      // Update tabs
+      document.querySelectorAll('.tab-item').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabId);
+      });
       
-      renderTabs();
-      
-      // Render page content
+      // Render content
       if (tabId === 'positions') renderPositions();
       if (tabId === 'reports') renderReports();
       if (tabId === 'tips') renderTips();
-      if (tabId === 'projects') renderProjects();
-      if (tabId === 'finances') renderFinances();
-      if (tabId === 'pipeline') renderPipeline();
     }
 
-    function setRole(role) {
-      state.role = role;
-      state.currentTab = role === 'agency' ? 'projects' : 'overview';
-      
-      // Update role buttons
-      document.querySelectorAll('.role-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(role === 'client' ? 'Клиент' : 'Агентство'));
-      });
-      
-      renderHeader();
-      renderTabs();
-      setTab(state.currentTab);
-    }
-
-    async function refresh() {
+    // === ACTIONS ===
+    function refresh() {
       const btn = document.getElementById('refreshBtn');
       btn.classList.add('loading');
       
-      const realData = await fetchWebmasterData('tvorimsovershenstvo.ru');
-      if (realData) {
-        currentData = { ...DEMO_DATA, ...realData };
-      }
-      
-      btn.classList.remove('loading');
-      renderOverview();
+      // Simulate API call
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        renderOverview();
+      }, 1000);
     }
 
     function openChat() {
@@ -1008,29 +699,23 @@
       }
     }
 
-    // === INIT ===
-    let currentData = DEMO_DATA;
-    
-    async function init() {
-      renderHeader();
-      renderTabs();
-      renderOverview();
-      
-      // Загружаем реальные данные
-      const realData = await fetchWebmasterData('tvorimsovershenstvo.ru');
-      if (realData) {
-        currentData = { ...DEMO_DATA, ...realData };
-        renderHeader();
-        renderOverview();
+    function openReport(url) {
+      if (tg) {
+        tg.showAlert('Отчёт откроется в новом окне');
       }
-      
-      // For agency users
-      if (state.isAgencyUser) {
-        setRole('agency');
+      // window.open(url, '_blank');
+    }
+
+    function handleTip(title) {
+      if (tg) {
+        tg.showAlert('Рекомендация: ' + title + '\n\nСвяжитесь с менеджером для реализации');
+      } else {
+        alert('Рекомендация: ' + title);
       }
     }
 
-    init();
+    // === INIT ===
+    renderOverview();
   </script>
 </body>
 </html>
