@@ -8,7 +8,9 @@ import {
   Lightbulb,
   ChevronUp,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react'
 
 // Types
@@ -35,11 +37,12 @@ interface ClientData {
     potential: number
     difficulty: string
   }>
+  updatedAt?: string
 }
 
 // Navigation items
 const NAV_ITEMS = [
-  { id: 'dashboard', icon: BarChart3, label: 'Дашборд' },
+  { id: 'dashboard', icon: BarChart3, label: 'Обзор' },
   { id: 'positions', icon: TrendingUp, label: 'Позиции' },
   { id: 'reports', icon: FileText, label: 'Отчёты' },
   { id: 'tips', icon: Lightbulb, label: 'Советы' },
@@ -134,67 +137,120 @@ export default function MiniApp() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [data, setData] = useState<ClientData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [telegramUser, setTelegramUser] = useState<{ id: number; first_name: string } | null>(null)
   
-  useEffect(() => {
-    // Mock data
-    setTimeout(() => {
-      setData({
-        name: 'Творим Совершенство',
-        domain: 'tvorimsovershenstvo.ru',
-        metrics: {
-          shows: 1247,
-          showsChange: 23,
-          clicks: 89,
-          clicksChange: 15,
-          avgPosition: 12.4,
-          positionChange: -8
-        },
-        topQueries: [
-          { query: 'стоматология спб', position: 8, shows: 234, clicks: 18, change: -2 },
-          { query: 'имплантация зубов', position: 12, shows: 189, clicks: 12, change: 1 },
-          { query: 'виниры цена', position: 15, shows: 156, clicks: 8, change: -3 },
-          { query: 'отбеливание зубов', position: 11, shows: 134, clicks: 11, change: 0 },
-          { query: 'лечение кариеса', position: 9, shows: 98, clicks: 7, change: -1 },
-        ],
-        recommendations: [
-          { query: 'имплантация под ключ', potential: 2400, difficulty: 'medium' },
-          { query: 'керамические виниры', potential: 1800, difficulty: 'low' },
-        ]
-      })
+  // Загрузка данных
+  const fetchData = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true)
+    
+    try {
+      // Получаем telegram_id если есть
+      const tgId = telegramUser?.id || 'demo'
+      
+      const response = await fetch(`/api/webapp/data?telegram_id=${tgId}`)
+      const result = await response.json()
+      
+      if (result.success) {
+        setData({
+          name: result.client.name,
+          domain: result.client.domain,
+          metrics: result.metrics,
+          topQueries: result.topQueries,
+          recommendations: result.recommendations,
+          updatedAt: result.updatedAt,
+        })
+      }
+    } catch (error) {
+      console.error('Fetch error:', error)
+    } finally {
       setLoading(false)
-    }, 300)
-  }, [])
+      setRefreshing(false)
+    }
+  }
   
   useEffect(() => {
+    // Инициализация Telegram WebApp
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
       const tg = (window as any).Telegram.WebApp
       tg.ready()
       tg.expand()
+      
+      // Получаем данные пользователя
+      if (tg.initDataUnsafe?.user) {
+        setTelegramUser(tg.initDataUnsafe.user)
+      }
+      
+      // Настраиваем MainButton для связи с менеджером
+      tg.MainButton.setText('💬 Написать менеджеру')
+      tg.MainButton.show()
+      tg.MainButton.onClick(() => {
+        tg.openTelegramLink('https://t.me/avpro_ru')
+      })
     }
+    
+    fetchData()
   }, [])
+  
+  // Перезагрузка при смене пользователя
+  useEffect(() => {
+    if (telegramUser) {
+      fetchData()
+    }
+  }, [telegramUser?.id])
   
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-400 text-sm">Загрузка данных...</p>
+        </div>
       </div>
     )
   }
   
-  if (!data) return null
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-white text-lg mb-2">Нет данных</p>
+          <p className="text-slate-400 text-sm mb-4">Свяжитесь с менеджером для подключения</p>
+          <button 
+            onClick={() => {
+              const tg = (window as any).Telegram?.WebApp
+              if (tg) tg.openTelegramLink('https://t.me/avpro_ru')
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded-xl"
+          >
+            Написать менеджеру
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white pb-20">
+    <div className="min-h-screen bg-slate-900 text-white pb-24">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold shrink-0">
-            A
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold shrink-0">
+              A
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-semibold text-white leading-tight truncate">{data.name}</h1>
+              <p className="text-slate-400 text-xs">{data.domain}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="font-semibold text-white leading-tight truncate">{data.name}</h1>
-            <p className="text-slate-400 text-xs">{data.domain}</p>
-          </div>
+          <button 
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+          >
+            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </header>
       
@@ -208,25 +264,24 @@ export default function MiniApp() {
               <MetricCard label="Клики" value={data.metrics.clicks} change={data.metrics.clicksChange} />
             </div>
             
-            {/* Position Chart */}
+            {/* Position Card */}
             <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-4 border border-slate-700/50">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-slate-400 text-sm">Динамика позиций</p>
-                <div className="flex items-center gap-1 text-emerald-400 text-sm">
-                  <ChevronUp className="w-4 h-4" />
+                <p className="text-slate-400 text-sm">Средняя позиция</p>
+                <div className={`flex items-center gap-1 text-sm ${data.metrics.positionChange < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {data.metrics.positionChange < 0 ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   <span>{Math.abs(data.metrics.positionChange)}%</span>
                 </div>
               </div>
-              <p className="text-2xl font-bold text-white mb-3">{data.metrics.avgPosition}</p>
-              <PositionChart data={[15, 14.5, 14, 13.5, 13, 12.8, 12.4]} />
+              <p className="text-3xl font-bold text-white mb-3">{data.metrics.avgPosition}</p>
+              <PositionChart data={[15, 14.5, 14, 13.5, 13, 12.8, data.metrics.avgPosition]} />
               <div className="flex justify-between text-xs text-slate-500 mt-2">
-                <span>1 дек</span>
-                <span>10 дек</span>
-                <span>20 дек</span>
+                <span>Неделя назад</span>
+                <span>Сегодня</span>
               </div>
             </div>
             
-            {/* Top Queries */}
+            {/* Top Queries Preview */}
             <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-4 border border-slate-700/50">
               <div className="flex items-center justify-between mb-2">
                 <p className="font-semibold">Топ запросы</p>
@@ -237,49 +292,101 @@ export default function MiniApp() {
               {data.topQueries.slice(0, 3).map((q, i) => <QueryRow key={i} {...q} />)}
             </div>
             
-            {/* Recommendation */}
-            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-4 border border-amber-500/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className="w-5 h-5 text-amber-400" />
-                <p className="font-semibold">Потенциал роста</p>
+            {/* Quick Tip */}
+            {data.recommendations[0] && (
+              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-4 border border-amber-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="w-5 h-5 text-amber-400" />
+                  <p className="font-semibold">Потенциал роста</p>
+                </div>
+                <p className="text-slate-300 text-sm">{data.recommendations[0].query}</p>
+                <p className="text-amber-400 font-medium mt-1">+{data.recommendations[0].potential.toLocaleString()} показов/мес</p>
               </div>
-              <p className="text-slate-300 text-sm">{data.recommendations[0].query}</p>
-              <p className="text-amber-400 font-medium mt-1">+{data.recommendations[0].potential.toLocaleString()} показов/мес</p>
-            </div>
+            )}
+            
+            {/* Updated time */}
+            {data.updatedAt && (
+              <p className="text-center text-slate-500 text-xs">
+                Обновлено: {new Date(data.updatedAt).toLocaleString('ru')}
+              </p>
+            )}
           </div>
         )}
         
         {activeTab === 'positions' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold">Позиции</h2>
+            <h2 className="text-lg font-bold">Все запросы</h2>
             <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-              {data.topQueries.map((q, i) => <QueryRow key={i} {...q} />)}
+              {data.topQueries.length > 0 ? (
+                data.topQueries.map((q, i) => <QueryRow key={i} {...q} />)
+              ) : (
+                <p className="text-slate-400 text-center py-8">Нет данных по запросам</p>
+              )}
             </div>
           </div>
         )}
         
         {activeTab === 'reports' && (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400">Отчёты формируются</p>
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold">Отчёты</h2>
+            <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50 text-center">
+              <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 mb-4">Отчёты за месяц</p>
+              <button 
+                onClick={() => {
+                  const tg = (window as any).Telegram?.WebApp
+                  if (tg) tg.openTelegramLink('https://t.me/avpro_ru?text=Хочу получить отчёт за месяц')
+                }}
+                className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl text-sm"
+              >
+                Запросить отчёт
+              </button>
+            </div>
           </div>
         )}
         
         {activeTab === 'tips' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h2 className="text-lg font-bold">Рекомендации</h2>
             {data.recommendations.map((r, i) => (
               <div key={i} className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
                 <p className="font-medium mb-1">{r.query}</p>
-                <span className="text-emerald-400 text-sm">+{r.potential.toLocaleString()} показов</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-emerald-400 text-sm">+{r.potential.toLocaleString()} показов</span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    r.difficulty === 'low' ? 'bg-green-500/20 text-green-400' :
+                    r.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {r.difficulty === 'low' ? 'Легко' : r.difficulty === 'medium' ? 'Средне' : 'Сложно'}
+                  </span>
+                </div>
               </div>
             ))}
+            
+            {/* Contact CTA */}
+            <div className="bg-blue-500/10 rounded-2xl p-4 border border-blue-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="w-5 h-5 text-blue-400" />
+                <p className="font-semibold">Нужна помощь?</p>
+              </div>
+              <p className="text-slate-300 text-sm mb-3">Обсудим стратегию продвижения</p>
+              <button 
+                onClick={() => {
+                  const tg = (window as any).Telegram?.WebApp
+                  if (tg) tg.openTelegramLink('https://t.me/avpro_ru')
+                }}
+                className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm w-full"
+              >
+                Написать менеджеру
+              </button>
+            </div>
           </div>
         )}
       </main>
       
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800">
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 safe-area-inset-bottom">
         <div className="flex justify-around py-2 px-2">
           {NAV_ITEMS.map(item => (
             <button
